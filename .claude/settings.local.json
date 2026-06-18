@@ -15,7 +15,8 @@
       "Bash(rm -rf app/welcome)",
       "Bash(npm run *)",
       "Bash(cat .gitignore)",
-      "Bash(ls ~/.ssh/*.pub)"
+      "Bash(ls ~/.ssh/*.pub)",
+      "Bash(ssh -o BatchMode=yes -o ConnectTimeout=10 Moadir 'bash -s')"
     ]
   }
 }

@@ -19,9 +19,9 @@ WorkingDirectory=/opt/moadir
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=API_BASE=http://127.0.0.1:9080
-# Usa o binário diretamente para não depender do pnpm/corepack no PATH do systemd.
-# Confirme o caminho do node com `which node` e ajuste se preciso (ex.: nvm).
-ExecStart=/usr/bin/node ./node_modules/.bin/react-router-serve ./build/server/index.js
+# Chama o binário do react-router-serve diretamente (é um script com shebang
+# que localiza o node no PATH — não prefixe com `node`, senão quebra).
+ExecStart=/opt/moadir/node_modules/.bin/react-router-serve ./build/server/index.js
 Restart=on-failure
 RestartSec=3
 # Usuário sem privilégios (precisa ter acesso de leitura a WorkingDirectory):
