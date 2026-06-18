@@ -82,6 +82,32 @@ export async function obterRelatorio(params: {
   return getJson<RelatorioResposta>(url, "Erro ao gerar relatório");
 }
 
+export type Produto = {
+  id: number;
+  descricao: string;
+  unidade: string;
+  grupo: string;
+  custo: number;
+  venda: number;
+};
+
+export type ProdutosResposta = {
+  total: number;
+  produtos: Produto[];
+};
+
+// Cadastro de produtos (global ^EPR). Preços já vêm em reais (÷100 na API).
+export async function listarProdutos(params: {
+  nome?: string;
+  limite?: number;
+}): Promise<ProdutosResposta> {
+  const url = new URL("/api/produtos", API_BASE);
+  if (params.nome) url.searchParams.set("nome", params.nome);
+  if (params.limite) url.searchParams.set("limite", String(params.limite));
+
+  return getJson<ProdutosResposta>(url, "Erro ao buscar produtos");
+}
+
 export async function obterCliente(id: number): Promise<ClienteDetalhe> {
   const url = new URL("/api/cliente", API_BASE);
   url.searchParams.set("id", String(id));

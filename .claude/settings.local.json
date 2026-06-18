@@ -16,7 +16,13 @@
       "Bash(npm run *)",
       "Bash(cat .gitignore)",
       "Bash(ls ~/.ssh/*.pub)",
-      "Bash(ssh -o BatchMode=yes -o ConnectTimeout=10 Moadir 'bash -s')"
+      "Bash(ssh -o BatchMode=yes -o ConnectTimeout=10 Moadir 'bash -s')",
+      "Bash(ssh Moadir 'echo \"=== quem escuta a 9080 ===\"; \\(ss -ltnp 2>/dev/null || netstat -ltnp 2>/dev/null\\) | grep 9080; echo \"=== processos yottadb/mumps ===\"; ps aux | grep -iE \"yottadb|mumps|ydb|gtm|9080\" | grep -v grep')",
+      "Bash(ssh Moadir 'echo \"=== /root/routines ===\"; ls -la /root/routines; echo \"=== systemd ydbweb ===\"; systemctl cat ydbweb.service 2>/dev/null | head -30')",
+      "Bash(ssh Moadir 'echo \"=== grep clientes/prejuizo/ping em todas as rotinas ===\"; grep -rln \"clientes\\\\|prejuizo\\\\|ping\\\\|APICLI\\\\|APIRELPREJ\" /root/routines/*.m 2>/dev/null; echo \"\"; echo \"=== procura config de rotas \\(global ^ ou routing\\) ===\"; grep -rlni \"addroute\\\\|routing\\\\|httproute\\\\|urlmap\\\\|^routes\\\\|web\\(\\\\|register\" /root/routines/*.m 2>/dev/null | head')",
+      "Bash(ssh Moadir 'cat /root/routines/_ydbweburl.m')",
+      "Bash(ssh Moadir 'echo \"=== quem le _ydbweburl/URLMAP ===\"; grep -rln \"ydbweburl\\\\|URLMAP\" /usr/local/lib/yottadb/r206/plugin/r/*.m /root/routines/*.m 2>/dev/null; echo \"=== service ydbweb ===\"; systemctl cat ydbweb.service 2>/dev/null; echo \"=== existe Makefile/compile? ===\"; ls -la /root/routines/Makefile /root/*.sh 2>/dev/null')",
+      "Bash(ssh Moadir 'echo \"=== run-ydbweb.sh ===\"; cat /root/run-ydbweb.sh; echo \"\"; echo \"=== ydb-api-env.sh ===\"; cat /root/ydb-api-env.sh; echo \"\"; echo \"=== start-api.sh ===\"; cat /root/start-api.sh')"
     ]
   }
 }

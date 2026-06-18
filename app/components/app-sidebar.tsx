@@ -4,6 +4,7 @@ import {
   LayoutDashboardIcon,
   UsersIcon,
   FileChartColumnIcon,
+  PackageIcon,
 } from "lucide-react"
 
 import {
@@ -20,6 +21,7 @@ import {
 const navItems = [
   { title: "Dashboard", url: "/", end: true, icon: LayoutDashboardIcon },
   { title: "Clientes", url: "/clientes", end: false, icon: UsersIcon },
+  { title: "Produtos", url: "/produtos", end: false, icon: PackageIcon },
   { title: "Relatório", url: "/relatorio", end: false, icon: FileChartColumnIcon },
 ]
 
