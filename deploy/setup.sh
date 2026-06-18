@@ -71,8 +71,12 @@ systemctl enable moadir
 systemctl restart moadir
 
 # 6. nginx ---------------------------------------------------------------------
+# IMPORTANTE: usa cp -n (no-clobber). Na 1ª vez instala nossa config HTTP;
+# depois o certbot adiciona o bloco 443 nesse mesmo arquivo. Reexecuções NÃO
+# sobrescrevem (senão cada redeploy derrubaria o HTTPS). Para forçar uma nova
+# config a partir do repo, remova /etc/nginx/sites-available/moadir e rode de novo.
 log "Configurando nginx"
-cp deploy/nginx-moadir.conf /etc/nginx/sites-available/moadir
+cp -n deploy/nginx-moadir.conf /etc/nginx/sites-available/moadir
 ln -sf /etc/nginx/sites-available/moadir /etc/nginx/sites-enabled/moadir
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
