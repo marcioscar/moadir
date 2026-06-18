@@ -32,6 +32,17 @@ if [[ "$EUID" -ne 0 ]]; then
   exit 1
 fi
 
+# 0. Auto-atualização -----------------------------------------------------------
+# O bash mantém aberto o inode ANTIGO deste arquivo durante a execução; um
+# `git pull` no meio não muda o que está rodando. Então, se o repo já existe,
+# atualizamos e RE-EXECUTAMOS a versão recém-baixada deste próprio script.
+# (Pulado no bootstrap via curl|bash, quando o arquivo ainda não está no disco.)
+if [[ "${MOADIR_REEXEC:-}" != "1" && -f "$APP_DIR/deploy/setup.sh" ]]; then
+  git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+  [[ -d "$APP_DIR/.git" ]] && git -C "$APP_DIR" pull --ff-only --quiet || true
+  exec env MOADIR_REEXEC=1 bash "$APP_DIR/deploy/setup.sh" "$@"
+fi
+
 # 1. Node.js -------------------------------------------------------------------
 if ! command -v node >/dev/null || [[ "$(node -v | sed 's/v\([0-9]*\).*/\1/')" -lt "$NODE_MAJOR" ]]; then
   log "Instalando Node.js ${NODE_MAJOR}.x"
