@@ -89,6 +89,7 @@ export type Produto = {
   grupo: string;
   custo: number;
   venda: number;
+  estoque: number;
 };
 
 export type ProdutosResposta = {

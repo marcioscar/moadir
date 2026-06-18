@@ -17,6 +17,10 @@ const brl = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
+const num = new Intl.NumberFormat("pt-BR", {
+  maximumFractionDigits: 3,
+});
+
 export async function loader({}: Route.LoaderArgs) {
   return listarProdutos({ limite: 100000 });
 }
@@ -71,6 +75,19 @@ const columns: ColumnDef<Produto>[] = [
     cell: ({ row }) => (
       <span className="font-mono tabular-nums">
         {brl.format(row.original.venda)}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "estoque",
+    header: "Estoque",
+    meta: { className: "text-right", headerClassName: "text-right" },
+    cell: ({ row }) => (
+      <span className="font-mono tabular-nums">
+        {num.format(row.original.estoque)}{" "}
+        <span className="text-xs text-muted-foreground">
+          {row.original.unidade}
+        </span>
       </span>
     ),
   },
