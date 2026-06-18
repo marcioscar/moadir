@@ -96,7 +96,7 @@ if [[ "$RUN_CERTBOT" == "1" ]]; then
 fi
 
 log "Pronto! Status do serviço:"
-systemctl --no-pager status moadir | head -n 5
+systemctl --no-pager status moadir | head -n 5 || true
 echo
 if [[ "$RUN_CERTBOT" == "1" ]]; then
   echo "Acesse: https://$DOMAIN"
