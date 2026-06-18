@@ -1,0 +1,32 @@
+# systemd unit para o app moadir (React Router SSR).
+# Instalar em: /etc/systemd/system/moadir.service
+#
+#   sudo cp deploy/moadir.service /etc/systemd/system/moadir.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now moadir
+#   sudo systemctl status moadir
+#
+# Ver logs:  journalctl -u moadir -f
+
+[Unit]
+Description=moadir (React Router SSR)
+After=network.target
+
+[Service]
+Type=simple
+# Ajuste para onde você clonou o projeto:
+WorkingDirectory=/opt/moadir
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=API_BASE=http://127.0.0.1:9080
+# Usa o binário diretamente para não depender do pnpm/corepack no PATH do systemd.
+# Confirme o caminho do node com `which node` e ajuste se preciso (ex.: nvm).
+ExecStart=/usr/bin/node ./node_modules/.bin/react-router-serve ./build/server/index.js
+Restart=on-failure
+RestartSec=3
+# Usuário sem privilégios (precisa ter acesso de leitura a WorkingDirectory):
+User=www-data
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target
