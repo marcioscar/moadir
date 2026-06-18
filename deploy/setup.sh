@@ -47,6 +47,7 @@ apt-get install -y nginx git certbot python3-certbot-nginx
 corepack enable
 
 # 3. Código --------------------------------------------------------------------
+git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
 if [[ -d "$APP_DIR/.git" ]]; then
   log "Atualizando código em $APP_DIR"
   git -C "$APP_DIR" pull --ff-only
