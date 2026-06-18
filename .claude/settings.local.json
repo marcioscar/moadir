@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm dlx *)",
+      "Bash(pnpm run *)",
+      "Bash(curl -s -m 10 \"http://2.25.175.240:9080/api/ping\")",
+      "Bash(curl -s -m 10 \"http://2.25.175.240:9080/api/clientes?limite=3\")",
+      "Bash(curl -s -m 20 \"http://2.25.175.240:9080/api/prejuizo?ini=01/01/2024&fim=31/12/2024\")",
+      "Bash(curl -s -m 20 \"http://2.25.175.240:9080/api/relatorio?dini=2024-01-01&dfim=2024-12-31\")",
+      "Bash(curl -s -m 30 \"http://2.25.175.240:9080/api/relatorio?dini=2000-01-01&dfim=2030-12-31\")",
+      "Bash(curl -s -m 30 \"http://2.25.175.240:9080/api/prejuizo?ini=01/01/2000&fim=31/12/2030\")",
+      "Bash(rm -f app/components/nav-main.tsx app/components/nav-documents.tsx app/components/nav-secondary.tsx app/components/nav-user.tsx app/components/chart-area-interactive.tsx app/components/data-table.tsx app/dashboard/data.json)",
+      "Bash(rmdir app/dashboard)",
+      "Bash(rm -f app/routes/home.tsx)",
+      "Bash(rm -rf app/welcome)",
+      "Bash(npm run *)",
+      "Bash(cat .gitignore)",
+      "Bash(ls ~/.ssh/*.pub)"
+    ]
+  }
+}
