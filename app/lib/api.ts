@@ -2,7 +2,13 @@
 // As funções abaixo rodam no servidor (loaders do React Router),
 // evitando problemas de CORS no navegador.
 
-export const API_BASE = "http://2.25.175.240:9080";
+// Endereço da API. Pode ser sobrescrito pela variável de ambiente API_BASE
+// (lida no servidor, já que os loaders rodam em Node — SSR).
+// Na própria VPS, defina API_BASE=http://127.0.0.1:9080 para falar com a API
+// local sem sair da máquina nem depender da porta 9080 estar aberta para fora.
+export const API_BASE =
+  (typeof process !== "undefined" && process.env.API_BASE) ||
+  "http://2.25.175.240:9080";
 
 // A API às vezes devolve caracteres de controle crus dentro de strings
 // (ex.: quebra de linha no nome do cliente), o que quebra o JSON.parse.

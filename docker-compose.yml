@@ -1,0 +1,12 @@
+services:
+  moadir:
+    build: .
+    container_name: moadir
+    # network_mode: host faz o container compartilhar a rede da VPS:
+    #  - o app fica disponível em http://<vps>:3000
+    #  - a API local é alcançável em http://127.0.0.1:9080
+    network_mode: host
+    environment:
+      - API_BASE=http://127.0.0.1:9080
+      - PORT=3000
+    restart: unless-stopped
