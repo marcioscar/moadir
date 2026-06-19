@@ -28,7 +28,9 @@
       "Bash(git push *)",
       "Bash(ssh -o BatchMode=yes Moadir 'git config --system --add safe.directory /opt/moadir; cd /opt/moadir && git fetch -q origin main && git reset --hard -q origin/main && cp deploy/moadir-deploy.service /etc/systemd/system/moadir-deploy.service && systemctl daemon-reload && echo \"=== testando o service na mao \\(deve dar sem mudancas, sem erro\\) ===\" && systemctl start moadir-deploy.service && sleep 1 && journalctl -u moadir-deploy --no-pager -n 3 | tail -3')",
       "Bash(git commit --allow-empty -q -m 'test: deploy pull autonomo \\(via timer\\) *)",
-      "Bash(ssh -o BatchMode=yes Moadir 'TARGET=__TRACKED_VAR__; for i in $\\(seq 1 30\\); do h=$\\(git -C /opt/moadir rev-parse HEAD 2>/dev/null\\); if [ \"$h\" = \"$TARGET\" ]; then for j in $\\(seq 1 20\\); do c=$\\(curl -s -o /dev/null -w '\\\\''%{http_code}'\\\\'' -k https://127.0.0.1/produtos\\); [ \"$c\" = 200 ] && break; sleep 1; done; echo \"✅ timer aplicou sozinho: ${h:0:7} \\(~$\\(\\(i*6\\)\\)s\\) | /produtos HTTP $c\"; exit 0; fi; sleep 6; done; echo \"nao aplicou \\(HEAD=${h:0:7}\\)\"; exit 1')"
+      "Bash(ssh -o BatchMode=yes Moadir 'TARGET=__TRACKED_VAR__; for i in $\\(seq 1 30\\); do h=$\\(git -C /opt/moadir rev-parse HEAD 2>/dev/null\\); if [ \"$h\" = \"$TARGET\" ]; then for j in $\\(seq 1 20\\); do c=$\\(curl -s -o /dev/null -w '\\\\''%{http_code}'\\\\'' -k https://127.0.0.1/produtos\\); [ \"$c\" = 200 ] && break; sleep 1; done; echo \"✅ timer aplicou sozinho: ${h:0:7} \\(~$\\(\\(i*6\\)\\)s\\) | /produtos HTTP $c\"; exit 0; fi; sleep 6; done; echo \"nao aplicou \\(HEAD=${h:0:7}\\)\"; exit 1')",
+      "Bash(xxd)",
+      "Bash(git commit -q -m 'docs: PDF do guia da API + README do projeto apontando para os guias *)"
     ]
   }
 }
