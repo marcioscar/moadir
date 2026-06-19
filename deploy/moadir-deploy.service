@@ -1,0 +1,12 @@
+# Serviço oneshot que checa/aplica deploys do moadir (chamado pelo timer).
+# Instalar em /etc/systemd/system/moadir-deploy.service
+# Logs: journalctl -u moadir-deploy -f
+[Unit]
+Description=moadir - deploy pull (checa GitHub e aplica se houver commit novo)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# flock evita dois deploys sobrepostos (se um build ainda estiver rodando).
+ExecStart=/usr/bin/flock -n /run/moadir-deploy.lock /opt/moadir/deploy/pull-deploy.sh

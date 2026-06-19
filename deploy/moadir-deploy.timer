@@ -1,0 +1,13 @@
+# Dispara o moadir-deploy.service a cada ~1 min.
+# Instalar em /etc/systemd/system/moadir-deploy.timer e habilitar:
+#   sudo systemctl enable --now moadir-deploy.timer
+[Unit]
+Description=Checa atualizacoes do moadir (deploy pull) a cada minuto
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target
