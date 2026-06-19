@@ -22,7 +22,11 @@
       "Bash(ssh Moadir 'echo \"=== grep clientes/prejuizo/ping em todas as rotinas ===\"; grep -rln \"clientes\\\\|prejuizo\\\\|ping\\\\|APICLI\\\\|APIRELPREJ\" /root/routines/*.m 2>/dev/null; echo \"\"; echo \"=== procura config de rotas \\(global ^ ou routing\\) ===\"; grep -rlni \"addroute\\\\|routing\\\\|httproute\\\\|urlmap\\\\|^routes\\\\|web\\(\\\\|register\" /root/routines/*.m 2>/dev/null | head')",
       "Bash(ssh Moadir 'cat /root/routines/_ydbweburl.m')",
       "Bash(ssh Moadir 'echo \"=== quem le _ydbweburl/URLMAP ===\"; grep -rln \"ydbweburl\\\\|URLMAP\" /usr/local/lib/yottadb/r206/plugin/r/*.m /root/routines/*.m 2>/dev/null; echo \"=== service ydbweb ===\"; systemctl cat ydbweb.service 2>/dev/null; echo \"=== existe Makefile/compile? ===\"; ls -la /root/routines/Makefile /root/*.sh 2>/dev/null')",
-      "Bash(ssh Moadir 'echo \"=== run-ydbweb.sh ===\"; cat /root/run-ydbweb.sh; echo \"\"; echo \"=== ydb-api-env.sh ===\"; cat /root/ydb-api-env.sh; echo \"\"; echo \"=== start-api.sh ===\"; cat /root/start-api.sh')"
+      "Bash(ssh Moadir 'echo \"=== run-ydbweb.sh ===\"; cat /root/run-ydbweb.sh; echo \"\"; echo \"=== ydb-api-env.sh ===\"; cat /root/ydb-api-env.sh; echo \"\"; echo \"=== start-api.sh ===\"; cat /root/start-api.sh')",
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'fix\\(deploy\\): HOME=/root no service do timer \\(git safe.directory + pnpm\\) *)",
+      "Bash(git push *)",
+      "Bash(ssh -o BatchMode=yes Moadir 'git config --system --add safe.directory /opt/moadir; cd /opt/moadir && git fetch -q origin main && git reset --hard -q origin/main && cp deploy/moadir-deploy.service /etc/systemd/system/moadir-deploy.service && systemctl daemon-reload && echo \"=== testando o service na mao \\(deve dar sem mudancas, sem erro\\) ===\" && systemctl start moadir-deploy.service && sleep 1 && journalctl -u moadir-deploy --no-pager -n 3 | tail -3')"
     ]
   }
 }

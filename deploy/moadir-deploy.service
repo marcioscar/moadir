@@ -8,5 +8,9 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+# HOME é necessário: o git lê o safe.directory de ~/.gitconfig e o pnpm usa
+# ~/.local/share/pnpm como store no build. Sem isso o systemd roda sem HOME e
+# o deploy falha (dubious ownership / pnpm).
+Environment=HOME=/root
 # flock evita dois deploys sobrepostos (se um build ainda estiver rodando).
 ExecStart=/usr/bin/flock -n /run/moadir-deploy.lock /opt/moadir/deploy/pull-deploy.sh
