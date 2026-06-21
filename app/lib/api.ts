@@ -115,3 +115,38 @@ export async function obterCliente(id: number): Promise<ClienteDetalhe> {
 
   return getJson<ClienteDetalhe>(url, `Cliente ${id} não encontrado`);
 }
+
+export type RegistroDcp = {
+  id: number;
+  data: string;
+  produtoId: number;
+  clienteId: number;
+  clienteNome: string;
+  descricao: string;
+  valor: number;
+};
+
+export type SemanaDcp = {
+  semana: number;
+  numGS: number;
+  totalLP: number;
+  subtotal: number;
+  registros: RegistroDcp[];
+};
+
+export type DcpResposta = {
+  filtro: { ini: number; fim: number };
+  totalGeral: number;
+  semanas: SemanaDcp[];
+};
+
+export async function listarDcp(params: {
+  ini?: number;
+  fim?: number;
+}): Promise<DcpResposta> {
+  const url = new URL("/api/dcp", API_BASE);
+  if (params.ini) url.searchParams.set("ini", String(params.ini));
+  if (params.fim) url.searchParams.set("fim", String(params.fim));
+
+  return getJson<DcpResposta>(url, "Erro ao buscar planilhas de custo");
+}
