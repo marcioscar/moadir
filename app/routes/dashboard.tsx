@@ -1,13 +1,19 @@
-import { Form, Link, useNavigation } from "react-router";
+import { Link } from "react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/dashboard";
-import { ChartPrejuizos } from "~/components/chart-prejuizos";
-import { SectionCards } from "~/components/section-cards";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { listarEncomendas } from "~/lib/api";
+import { ChartEstagio } from "~/components/chart-estagio";
+import { ChartTopClientes } from "~/components/chart-top-clientes";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { DataTable } from "~/components/ui/data-table";
-import { listarClientes, obterRelatorio } from "~/lib/api";
+import { Badge } from "~/components/ui/badge";
+import { FactoryIcon, PackageIcon, ScaleIcon, CalendarClockIcon } from "lucide-react";
 
 export const handle = { title: "Dashboard" };
 
@@ -15,124 +21,216 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "Dashboard — Empac" }];
 }
 
-const brl = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-});
+const ESTAGIO_NOME: Record<number, string> = {
+  0: "Na Fila", 1: "Coord.", 2: "UniEx", 3: "Flexo",
+  4: "Corte",   5: "UniPac", 6: "UniMat",
+};
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const dini = url.searchParams.get("dini") ?? "2026-05-01";
-  const dfim = url.searchParams.get("dfim") ?? "2026-12-31";
+const qty = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 
-  const [relatorio, baseClientes] = await Promise.all([
-    obterRelatorio({ dini, dfim }),
-    listarClientes({ limite: 100000 }),
-  ]);
+export async function loader({}: Route.LoaderArgs) {
+  const { encomendas, total } = await listarEncomendas({ abertos: true });
 
-  const maior = relatorio.clientes.reduce<{
-    nome: string;
-    total: number;
-  } | null>((acc, c) => (acc === null || c.total < acc.total ? c : acc), null);
+  const pesoTotal = encomendas.reduce((s, e) => s + e.pesoKg, 0);
+
+  const clientesMap = new Map<number, string>();
+  for (const e of encomendas) clientesMap.set(e.clienteId, e.clienteNome.trim());
+  const clientesAtivos = clientesMap.size;
+
+  const pedidoMaisAntigo = encomendas.reduce<string | null>(
+    (oldest, e) => (!oldest || e.dataPedido < oldest ? e.dataPedido : oldest),
+    null,
+  );
+  const diasAguardando = pedidoMaisAntigo
+    ? Math.floor(
+        (Date.now() - new Date(pedidoMaisAntigo).getTime()) / 86_400_000,
+      )
+    : 0;
+
+  const porEstagioMap: Record<number, number> = {};
+  for (const e of encomendas) porEstagioMap[e.estado] = (porEstagioMap[e.estado] ?? 0) + 1;
+  const chartEstagio = [0, 1, 2, 3, 4, 5, 6].map((id) => ({
+    estagio: ESTAGIO_NOME[id],
+    count: porEstagioMap[id] ?? 0,
+  }));
+
+  const porClienteMap: Record<number, { cliente: string; count: number }> = {};
+  for (const e of encomendas) {
+    if (!porClienteMap[e.clienteId]) {
+      porClienteMap[e.clienteId] = { cliente: e.clienteNome.trim(), count: 0 };
+    }
+    porClienteMap[e.clienteId].count++;
+  }
+  const topClientes = Object.values(porClienteMap)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8)
+    .map((c) => ({
+      ...c,
+      cliente:
+        c.cliente.length > 30 ? c.cliente.slice(0, 30) + "…" : c.cliente,
+    }));
+
+  const maisAntigos = [...encomendas]
+    .sort((a, b) => a.dataPedido.localeCompare(b.dataPedido))
+    .slice(0, 8);
 
   return {
-    dini,
-    dfim,
-    clientes: relatorio.clientes,
-    resumo: {
-      totalClientes: baseClientes.total,
-      totalGeral: relatorio.totalGeral,
-      clientesComPrejuizo: relatorio.clientes.length,
-      maiorPrejuizo: maior,
-    },
+    total,
+    pesoTotal,
+    clientesAtivos,
+    diasAguardando,
+    pedidoMaisAntigo,
+    chartEstagio,
+    topClientes,
+    maisAntigos,
   };
 }
 
-type LinhaPrejuizo = Route.ComponentProps["loaderData"]["clientes"][number];
+type EncomendaRow = Route.ComponentProps["loaderData"]["maisAntigos"][number];
 
-const columns: ColumnDef<LinhaPrejuizo>[] = [
+const columns: ColumnDef<EncomendaRow>[] = [
   {
     accessorKey: "id",
-    header: "ID",
-    size: 96,
+    header: "Nº",
+    size: 72,
     cell: ({ row }) => (
-      <Link to={`/clientes/${row.original.id}`} className="hover:underline">
-        {row.original.id}
-      </Link>
+      <span className="font-mono text-sm text-muted-foreground">
+        {String(row.original.id).padStart(4, "0")}
+      </span>
     ),
   },
   {
-    accessorKey: "nome",
-    header: "Cliente",
-    cell: ({ row }) => <span className="font-medium">{row.original.nome}</span>,
+    accessorKey: "produto",
+    header: "Produto",
+    cell: ({ row }) => (
+      <span className="font-medium">{row.original.produto}</span>
+    ),
   },
   {
-    accessorKey: "total",
-    header: "Prejuízo",
-    meta: { className: "text-right", headerClassName: "text-right" },
+    accessorKey: "clienteNome",
+    header: "Cliente",
     cell: ({ row }) => (
-      <span className="font-mono tabular-nums text-destructive">
-        {brl.format(row.original.total)}
-      </span>
+      <span className="text-sm">{row.original.clienteNome}</span>
+    ),
+  },
+  {
+    accessorKey: "dataPedido",
+    header: "Data pedido",
+    size: 110,
+    cell: ({ row }) => {
+      const [y, m, d] = row.original.dataPedido.split("-");
+      return <span className="tabular-nums text-sm">{d}/{m}/{y}</span>;
+    },
+  },
+  {
+    accessorKey: "estadoNome",
+    header: "Estágio",
+    size: 130,
+    cell: ({ row }) => (
+      <Badge variant="outline">{row.original.estadoNome}</Badge>
     ),
   },
 ];
 
 export default function Dashboard({ loaderData }: Route.ComponentProps) {
-  const { resumo, clientes, dini, dfim } = loaderData;
-  const navigation = useNavigation();
-  const carregando = navigation.state === "loading";
+  const {
+    total,
+    pesoTotal,
+    clientesAtivos,
+    diasAguardando,
+    chartEstagio,
+    topClientes,
+    maisAntigos,
+  } = loaderData;
 
   return (
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col gap-2">
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-          <div className="px-4 lg:px-6">
-            <Form method="get" className="flex flex-wrap items-end gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-medium" htmlFor="dini">
-                  Início
-                </label>
-                <Input id="dini" name="dini" type="date" defaultValue={dini} />
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium" htmlFor="dfim">
-                  Fim
-                </label>
-                <Input id="dfim" name="dfim" type="date" defaultValue={dfim} />
-              </div>
-              <Button type="submit" disabled={carregando}>
-                {carregando ? "Atualizando..." : "Atualizar"}
-              </Button>
-            </Form>
+
+          {/* KPI Cards */}
+          <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+            <Card className="@container/card">
+              <CardHeader>
+                <CardDescription>Encomendas em aberto</CardDescription>
+                <CardTitle className="text-3xl font-semibold tabular-nums">
+                  {total}
+                </CardTitle>
+              </CardHeader>
+              <CardFooter className="text-sm text-muted-foreground">
+                <FactoryIcon className="mr-1.5 size-4" />
+                Na fila de produção
+              </CardFooter>
+            </Card>
+
+            <Card className="@container/card">
+              <CardHeader>
+                <CardDescription>Peso total em produção</CardDescription>
+                <CardTitle className="text-3xl font-semibold tabular-nums">
+                  {qty.format(pesoTotal)} kg
+                </CardTitle>
+              </CardHeader>
+              <CardFooter className="text-sm text-muted-foreground">
+                <ScaleIcon className="mr-1.5 size-4" />
+                Soma de todos os pedidos abertos
+              </CardFooter>
+            </Card>
+
+            <Card className="@container/card">
+              <CardHeader>
+                <CardDescription>Clientes ativos</CardDescription>
+                <CardTitle className="text-3xl font-semibold tabular-nums">
+                  {clientesAtivos}
+                </CardTitle>
+              </CardHeader>
+              <CardFooter className="text-sm text-muted-foreground">
+                <PackageIcon className="mr-1.5 size-4" />
+                Com pelo menos 1 pedido em aberto
+              </CardFooter>
+            </Card>
+
+            <Card className="@container/card">
+              <CardHeader>
+                <CardDescription>Pedido mais antigo</CardDescription>
+                <CardTitle className="text-3xl font-semibold tabular-nums">
+                  {diasAguardando}d
+                </CardTitle>
+              </CardHeader>
+              <CardFooter className="text-sm text-muted-foreground">
+                <CalendarClockIcon className="mr-1.5 size-4" />
+                Dias desde o pedido mais antigo
+              </CardFooter>
+            </Card>
           </div>
 
-          <SectionCards resumo={resumo} />
-
-          <div className="px-4 lg:px-6">
-            <ChartPrejuizos
-              data={clientes.map((c) => ({
-                nome: c.nome,
-                total: c.total,
-              }))}
-            />
+          {/* Gráficos */}
+          <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @3xl/main:grid-cols-2">
+            <ChartEstagio data={chartEstagio} />
+            <ChartTopClientes data={topClientes} />
           </div>
 
+          {/* Tabela: pedidos mais antigos */}
           <div className="px-4 lg:px-6">
             <Card>
               <CardHeader>
-                <CardTitle>Prejuízo por cliente</CardTitle>
+                <CardTitle>Pedidos mais antigos em aberto</CardTitle>
+                <CardDescription>
+                  Ordenados por data do pedido — os que aguardam há mais tempo.{" "}
+                  <Link to="/fila" className="underline underline-offset-2">
+                    Ver fila completa →
+                  </Link>
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <DataTable
-                  columns={columns}
-                  data={clientes}
-                  searchPlaceholder="Buscar cliente..."
-                  emptyMessage="Nenhum registro no período."
-                />
-              </CardContent>
+              <DataTable
+                columns={columns}
+                data={maisAntigos}
+                searchPlaceholder="Buscar..."
+                emptyMessage="Sem pedidos em aberto."
+                pageSize={8}
+              />
             </Card>
           </div>
+
         </div>
       </div>
     </div>

@@ -14,12 +14,12 @@ export default function AppLayout() {
   return (
     <div className="flex min-h-svh flex-col">
       <header className="sticky top-0 z-50 border-b bg-background">
-        <div className="flex h-14 items-center gap-3 px-6">
+        <div className="flex h-20 items-center gap-3 px-6">
           <NavLink to="/" className="flex-shrink-0 transition-opacity hover:opacity-80">
             <img
               src="/LogoEmpac1.png"
               alt="Empac Agroindustrial de Plásticos"
-              className="h-8 w-auto object-contain dark:brightness-0 dark:invert"
+              className="h-14 w-auto object-contain dark:brightness-0 dark:invert"
             />
           </NavLink>
           <div className="h-5 w-px bg-border" />
