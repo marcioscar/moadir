@@ -6,6 +6,7 @@ import {
   FileChartColumnIcon,
   PackageIcon,
   TrendingDown,
+  FactoryIcon,
 } from "lucide-react"
 
 import {
@@ -23,6 +24,7 @@ const navItems = [
   { title: "Dashboard", url: "/", end: true, icon: LayoutDashboardIcon },
   { title: "Clientes", url: "/clientes", end: false, icon: UsersIcon },
   { title: "Produtos", url: "/produtos", end: false, icon: PackageIcon },
+  { title: "Fila de Produção", url: "/fila", end: false, icon: FactoryIcon },
   { title: "Planilhas DCP", url: "/prejuizos", end: false, icon: TrendingDown },
   { title: "Relatório", url: "/relatorio", end: false, icon: FileChartColumnIcon },
 ]

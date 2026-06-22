@@ -11,6 +11,7 @@ export default [
     route("clientes", "routes/clientes.tsx"),
     route("clientes/:id", "routes/clientes.$id.tsx"),
     route("produtos", "routes/produtos.tsx"),
+    route("fila", "routes/fila.tsx"),
     route("prejuizos", "routes/prejuizos.tsx"),
     route("relatorio", "routes/relatorio.tsx"),
   ]),

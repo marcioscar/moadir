@@ -89,6 +89,9 @@ export type Produto = {
   grupo: string;
   custo: number;
   venda: number;
+  local: string;
+  disponivel: number;
+  reservado: number;
   estoque: number;
 };
 
@@ -139,6 +142,44 @@ export type DcpResposta = {
   totalGeral: number;
   semanas: SemanaDcp[];
 };
+
+export type Encomenda = {
+  id: number;
+  produto: string;
+  unidade: string;
+  clienteId: number;
+  clienteNome: string;
+  dataPedido: string;
+  qtdPedida: number;
+  qtdProduzida: number;
+  embalagem: number;
+  precoCusto: number;
+  precoVenda: number;
+  valorOrcado: number;
+  pesoKg: number;
+  estado: number;
+  estadoNome: string;
+};
+
+export type EncomendasResposta = {
+  total: number;
+  encomendas: Encomenda[];
+};
+
+export async function listarEncomendas(params: {
+  estado?: number;
+  cliente?: number;
+  abertos?: boolean;
+  limite?: number;
+}): Promise<EncomendasResposta> {
+  const url = new URL("/api/encomendas", API_BASE);
+  if (params.estado !== undefined)
+    url.searchParams.set("estado", String(params.estado));
+  if (params.cliente) url.searchParams.set("cliente", String(params.cliente));
+  if (params.abertos) url.searchParams.set("abertos", "1");
+  if (params.limite) url.searchParams.set("limite", String(params.limite));
+  return getJson<EncomendasResposta>(url, "Erro ao buscar encomendas");
+}
 
 export async function listarDcp(params: {
   ini?: number;

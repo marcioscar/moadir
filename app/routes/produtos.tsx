@@ -79,6 +79,34 @@ const columns: ColumnDef<Produto>[] = [
     ),
   },
   {
+    accessorKey: "local",
+    header: "Local",
+    size: 96,
+    cell: ({ row }) => (
+      <span className="font-mono text-xs">{row.original.local}</span>
+    ),
+  },
+  {
+    accessorKey: "disponivel",
+    header: "Disponível",
+    meta: { className: "text-right", headerClassName: "text-right" },
+    cell: ({ row }) => (
+      <span className="font-mono tabular-nums">
+        {num.format(row.original.disponivel)}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "reservado",
+    header: "Reservado",
+    meta: { className: "text-right", headerClassName: "text-right" },
+    cell: ({ row }) => (
+      <span className="font-mono tabular-nums text-muted-foreground">
+        {num.format(row.original.reservado)}
+      </span>
+    ),
+  },
+  {
     accessorKey: "estoque",
     header: "Estoque",
     meta: { className: "text-right", headerClassName: "text-right" },
