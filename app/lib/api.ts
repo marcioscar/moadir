@@ -181,6 +181,54 @@ export async function listarEncomendas(params: {
   return getJson<EncomendasResposta>(url, "Erro ao buscar encomendas");
 }
 
+export type MovimentoGSF = {
+  seq: number;
+  data: string;
+  tipo: number;
+  quantidade: number;
+  unidade: string;
+  produtoId: number;
+  produtoNome: string;
+};
+
+export type EncomendaDetalhe = {
+  id: number;
+  produto: string;
+  unidade: string;
+  clienteId: number;
+  clienteNome: string;
+  dataPedido: string;
+  qtdPedida: number;
+  qtdProduzida: number;
+  precoCusto: number;
+  precoVenda: number;
+  valorOrcado: number;
+  pesoKg: number;
+  estado: number;
+  estadoNome: string;
+  movimentos: MovimentoGSF[];
+};
+
+export type EstadoAtualizacao = { ok: boolean; id: number; estado: number };
+
+export async function atualizarEstadoEncomenda(
+  id: number,
+  estado: number,
+): Promise<EstadoAtualizacao> {
+  const url = new URL("/api/encomenda-estado", API_BASE);
+  url.searchParams.set("id", String(id));
+  url.searchParams.set("estado", String(estado));
+  return getJson<EstadoAtualizacao>(url, `Erro ao atualizar estado da encomenda ${id}`);
+}
+
+export async function buscarDetalheEncomenda(
+  id: number,
+): Promise<EncomendaDetalhe> {
+  const url = new URL("/api/encomenda-detalhe", API_BASE);
+  url.searchParams.set("id", String(id));
+  return getJson<EncomendaDetalhe>(url, `Detalhe da encomenda ${id} não encontrado`);
+}
+
 export async function listarDcp(params: {
   ini?: number;
   fim?: number;

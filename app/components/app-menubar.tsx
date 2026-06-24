@@ -3,6 +3,7 @@ import {
   UsersIcon,
   PackageIcon,
   FactoryIcon,
+  Settings2,
   TrendingDown,
   FileChartColumnIcon,
 } from "lucide-react";
@@ -27,9 +28,10 @@ const GRUPOS = [
   },
   {
     label: "Produção",
-    prefixos: ["/fila"],
+    prefixos: ["/fila", "/atualizacao"],
     itens: [
-      { label: "Fila de Produção", path: "/fila", icon: FactoryIcon },
+      { label: "Fila de Produção",  path: "/fila",        icon: FactoryIcon },
+      { label: "Atualizar Estágio", path: "/atualizacao", icon: Settings2   },
     ],
   },
   {

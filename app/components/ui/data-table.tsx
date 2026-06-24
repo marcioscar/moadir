@@ -60,6 +60,8 @@ interface DataTableProps<TData, TValue> {
   renderSubRow?: (row: Row<TData>) => React.ReactNode
   /** Chamado sempre que o texto de busca muda — permite o pai rastrear o filtro ativo. */
   onSearchChange?: (value: string) => void
+  /** Chamado ao clicar em uma linha. */
+  onRowClick?: (row: TData) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -72,6 +74,7 @@ export function DataTable<TData, TValue>({
   footer,
   renderSubRow,
   onSearchChange,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = React.useState("")
@@ -179,7 +182,10 @@ export function DataTable<TData, TValue>({
             ) : (
               table.getRowModel().rows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <TableRow>
+                  <TableRow
+                    onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                    className={cn(onRowClick && "cursor-pointer")}
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
