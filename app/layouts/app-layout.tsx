@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLoaderData, useMatches } from "react-router";
 import type { Route } from "./+types/app-layout";
 import { requireUsuario, type Usuario } from "~/lib/auth.server";
-import { AppMenubar } from "~/components/app-menubar";
+import { AppMenubar, UserMenu } from "~/components/app-menubar";
 
 type Handle = { title?: string };
 
@@ -41,6 +41,7 @@ export default function AppLayout() {
           <AppMenubar user={user} />
           <div className="flex-1" />
           <span className="text-sm font-medium text-muted-foreground">{title}</span>
+          <UserMenu user={user} />
         </div>
       </header>
       <Outlet />

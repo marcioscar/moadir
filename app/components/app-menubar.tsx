@@ -61,112 +61,111 @@ interface Props {
 export function AppMenubar({ user }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const fetcher = useFetcher();
   const nivel = ROLE_LEVEL[user.role];
-
   const gruposVisiveis = GRUPOS.filter((g) => nivel >= ROLE_LEVEL[g.minRole]);
 
   return (
-    <div className="flex items-center gap-1">
-      <Menubar className="border-none bg-transparent p-0 shadow-none">
-        {gruposVisiveis.map((grupo) => {
-          const ativo = grupo.prefixos.some((p) => pathname.startsWith(p));
-          return (
-            <MenubarMenu key={grupo.label}>
-              <MenubarTrigger
-                className={cn(
-                  "cursor-pointer text-sm",
-                  ativo && "bg-accent font-medium text-accent-foreground",
-                )}
-              >
-                {grupo.label}
-              </MenubarTrigger>
-              <MenubarContent>
-                {grupo.itens.map((item, i) => (
-                  <span key={item.path}>
-                    {i > 0 && <MenubarSeparator />}
-                    <MenubarItem
-                      onClick={() => navigate(item.path)}
-                      className={cn(
-                        "cursor-pointer gap-2",
-                        pathname.startsWith(item.path) &&
-                          "bg-accent text-accent-foreground",
-                      )}
-                    >
-                      <item.icon className="size-4 text-muted-foreground" />
-                      {item.label}
-                    </MenubarItem>
-                  </span>
-                ))}
-              </MenubarContent>
-            </MenubarMenu>
-          );
-        })}
-
-        {/* Menu de Administração (apenas admin) */}
-        {user.role === "admin" && (
-          <MenubarMenu>
+    <Menubar className="border-none bg-transparent p-0 shadow-none">
+      {gruposVisiveis.map((grupo) => {
+        const ativo = grupo.prefixos.some((p) => pathname.startsWith(p));
+        return (
+          <MenubarMenu key={grupo.label}>
             <MenubarTrigger
               className={cn(
                 "cursor-pointer text-sm",
-                pathname.startsWith("/admin") && "bg-accent font-medium text-accent-foreground",
+                ativo && "bg-accent font-medium text-accent-foreground",
               )}
             >
-              Administração
+              {grupo.label}
             </MenubarTrigger>
             <MenubarContent>
-              <MenubarItem
-                onClick={() => navigate("/admin/usuarios")}
-                className={cn(
-                  "cursor-pointer gap-2",
-                  pathname.startsWith("/admin/usuarios") && "bg-accent text-accent-foreground",
-                )}
-              >
-                <ShieldIcon className="size-4 text-muted-foreground" />
-                Usuários
-              </MenubarItem>
-              <MenubarSeparator />
-              <MenubarItem
-                onClick={() => navigate("/admin/fator")}
-                className={cn(
-                  "cursor-pointer gap-2",
-                  pathname.startsWith("/admin/fator") && "bg-accent text-accent-foreground",
-                )}
-              >
-                <TrendingUpIcon className="size-4 text-muted-foreground" />
-                Fatores de Preço
-              </MenubarItem>
+              {grupo.itens.map((item, i) => (
+                <span key={item.path}>
+                  {i > 0 && <MenubarSeparator />}
+                  <MenubarItem
+                    onClick={() => navigate(item.path)}
+                    className={cn(
+                      "cursor-pointer gap-2",
+                      pathname.startsWith(item.path) && "bg-accent text-accent-foreground",
+                    )}
+                  >
+                    <item.icon className="size-4 text-muted-foreground" />
+                    {item.label}
+                  </MenubarItem>
+                </span>
+              ))}
             </MenubarContent>
           </MenubarMenu>
-        )}
-      </Menubar>
+        );
+      })}
 
-      {/* Menu do usuário logado */}
-      <Menubar className="border-none bg-transparent p-0 shadow-none">
+      {user.role === "admin" && (
         <MenubarMenu>
-          <MenubarTrigger className="cursor-pointer gap-1.5 text-sm">
-            <UserCircle2Icon className="size-4 text-muted-foreground" />
-            <span className="max-w-28 truncate">{user.nome}</span>
+          <MenubarTrigger
+            className={cn(
+              "cursor-pointer text-sm",
+              pathname.startsWith("/admin") && "bg-accent font-medium text-accent-foreground",
+            )}
+          >
+            Administração
           </MenubarTrigger>
-          <MenubarContent align="end">
-            <div className="px-2 py-1.5">
-              <p className="text-xs font-medium">{user.nome}</p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
-              <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
-                {ROLE_LABEL[user.role]}
-              </span>
-            </div>
+          <MenubarContent>
+            <MenubarItem
+              onClick={() => navigate("/admin/usuarios")}
+              className={cn(
+                "cursor-pointer gap-2",
+                pathname.startsWith("/admin/usuarios") && "bg-accent text-accent-foreground",
+              )}
+            >
+              <ShieldIcon className="size-4 text-muted-foreground" />
+              Usuários
+            </MenubarItem>
             <MenubarSeparator />
             <MenubarItem
-              className="cursor-pointer gap-2 text-destructive focus:text-destructive"
-              onSelect={() => fetcher.submit({}, { method: "post", action: "/logout" })}
+              onClick={() => navigate("/admin/fator")}
+              className={cn(
+                "cursor-pointer gap-2",
+                pathname.startsWith("/admin/fator") && "bg-accent text-accent-foreground",
+              )}
             >
-              <LogOutIcon className="size-4" />
-              Sair
+              <TrendingUpIcon className="size-4 text-muted-foreground" />
+              Fatores de Preço
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
-      </Menubar>
-    </div>
+      )}
+    </Menubar>
+  );
+}
+
+export function UserMenu({ user }: Props) {
+  const fetcher = useFetcher();
+
+  return (
+    <Menubar className="border-none bg-transparent p-0 shadow-none">
+      <MenubarMenu>
+        <MenubarTrigger className="cursor-pointer gap-1.5 text-sm">
+          <UserCircle2Icon className="size-4 text-muted-foreground" />
+          <span className="max-w-36 truncate">{user.nome}</span>
+        </MenubarTrigger>
+        <MenubarContent align="end">
+          <div className="px-2 py-1.5">
+            <p className="text-xs font-medium">{user.nome}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
+            <span className="mt-1 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
+              {ROLE_LABEL[user.role]}
+            </span>
+          </div>
+          <MenubarSeparator />
+          <MenubarItem
+            className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+            onSelect={() => fetcher.submit({}, { method: "post", action: "/logout" })}
+          >
+            <LogOutIcon className="size-4" />
+            Sair
+          </MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
   );
 }
