@@ -1,4 +1,4 @@
-import { Form, useNavigate, useLocation } from "react-router";
+import { useFetcher, useNavigate, useLocation } from "react-router";
 import {
   UsersIcon,
   PackageIcon,
@@ -60,6 +60,7 @@ interface Props {
 export function AppMenubar({ user }: Props) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const fetcher = useFetcher();
   const nivel = ROLE_LEVEL[user.role];
 
   const gruposVisiveis = GRUPOS.filter((g) => nivel >= ROLE_LEVEL[g.minRole]);
@@ -144,16 +145,12 @@ export function AppMenubar({ user }: Props) {
               </span>
             </div>
             <MenubarSeparator />
-            <MenubarItem asChild>
-              <Form method="post" action="/logout">
-                <button
-                  type="submit"
-                  className="flex w-full cursor-pointer items-center gap-2 text-sm text-destructive"
-                >
-                  <LogOutIcon className="size-4" />
-                  Sair
-                </button>
-              </Form>
+            <MenubarItem
+              className="cursor-pointer gap-2 text-destructive focus:text-destructive"
+              onSelect={() => fetcher.submit({}, { method: "post", action: "/logout" })}
+            >
+              <LogOutIcon className="size-4" />
+              Sair
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
