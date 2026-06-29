@@ -1,7 +1,8 @@
-import { Link } from "react-router";
+import { Link, redirect } from "react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/dashboard";
 import { listarEncomendas } from "~/lib/api";
+import { requireUsuario } from "~/lib/auth.server";
 import { ChartEstagio } from "~/components/chart-estagio";
 import { ChartTopClientes } from "~/components/chart-top-clientes";
 import {
@@ -28,7 +29,11 @@ const ESTAGIO_NOME: Record<number, string> = {
 
 const qty = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 
-export async function loader({}: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await requireUsuario(request);
+  // Operadores não têm acesso ao dashboard — vão direto para a fila
+  if (user.role === "operador") throw redirect("/fila");
+
   const { encomendas, total } = await listarEncomendas({ abertos: true });
 
   const pesoTotal = encomendas.reduce((s, e) => s + e.pesoKg, 0);

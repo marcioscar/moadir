@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import type { Route } from "./+types/clientes.$id";
 import { obterCliente } from "~/lib/api";
+import { requireMinRole } from "~/lib/auth.server";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -18,7 +19,8 @@ export function meta({ loaderData }: Route.MetaArgs) {
   ];
 }
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
+  await requireMinRole(request, "gerente");
   return obterCliente(Number(params.id));
 }
 

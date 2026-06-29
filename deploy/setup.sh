@@ -68,11 +68,25 @@ else
 fi
 cd "$APP_DIR"
 
-# 4. Build ---------------------------------------------------------------------
+# 4. Segredos -----------------------------------------------------------------
+SECRETS_FILE="$APP_DIR/secrets.env"
+if [[ ! -f "$SECRETS_FILE" ]]; then
+  log "Gerando SESSION_SECRET em $SECRETS_FILE"
+  SECRET=$(openssl rand -hex 32)
+  echo "SESSION_SECRET=$SECRET" > "$SECRETS_FILE"
+  chmod 600 "$SECRETS_FILE"
+fi
+
+# 4b. Build -------------------------------------------------------------------
 log "Instalando dependências e buildando"
 pnpm install --frozen-lockfile
 pnpm run build
 chown -R "$APP_USER:$APP_USER" "$APP_DIR"
+chmod 600 "$SECRETS_FILE"   # garante permissão após chown
+
+# Diretório de dados persistente (users.json, etc.)
+mkdir -p "$APP_DIR/data"
+chown "$APP_USER:$APP_USER" "$APP_DIR/data"
 
 # 5. systemd -------------------------------------------------------------------
 log "Configurando serviço systemd"

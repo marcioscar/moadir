@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight, Download, Printer, TrendingDown } from "luci
 import type { ColumnDef, Row } from "@tanstack/react-table";
 import type { Route } from "./+types/prejuizos";
 import { listarDcp } from "~/lib/api";
+import { requireMinRole } from "~/lib/auth.server";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
@@ -200,6 +201,7 @@ type RegistroLinha = {
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireMinRole(request, "gerente");
   const url = new URL(request.url);
   const ini = Number(url.searchParams.get("ini") ?? "1");
   const fim = Number(url.searchParams.get("fim") ?? "0");

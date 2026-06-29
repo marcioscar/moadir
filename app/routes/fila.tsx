@@ -4,6 +4,7 @@ import { Factory, TrendingUp, TrendingDown } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/fila";
 import { listarEncomendas, type Encomenda, type EncomendaDetalhe, type MovimentoGSF } from "~/lib/api";
+import { requireUsuario } from "~/lib/auth.server";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
@@ -325,7 +326,8 @@ function DetalheDialog({
   );
 }
 
-export async function loader({}: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireUsuario(request);
   return listarEncomendas({ abertos: true });
 }
 

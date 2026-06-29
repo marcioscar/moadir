@@ -2,6 +2,7 @@ import { Package } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/produtos";
 import { listarProdutos } from "~/lib/api";
+import { requireMinRole } from "~/lib/auth.server";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent } from "~/components/ui/card";
 import { DataTable } from "~/components/ui/data-table";
@@ -21,7 +22,8 @@ const num = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 3,
 });
 
-export async function loader({}: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireMinRole(request, "gerente");
   return listarProdutos({ limite: 100000 });
 }
 

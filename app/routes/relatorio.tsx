@@ -3,6 +3,7 @@ import { FileBarChart } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/relatorio";
 import { obterRelatorio } from "~/lib/api";
+import { requireMinRole } from "~/lib/auth.server";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Badge } from "~/components/ui/badge";
@@ -27,6 +28,7 @@ const brl = new Intl.NumberFormat("pt-BR", {
 });
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireMinRole(request, "gerente");
   const url = new URL(request.url);
   const dini = url.searchParams.get("dini") ?? "2000-01-01";
   const dfim = url.searchParams.get("dfim") ?? "2030-12-31";

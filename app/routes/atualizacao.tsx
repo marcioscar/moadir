@@ -3,6 +3,7 @@ import { useFetcher } from "react-router";
 import { Settings2 } from "lucide-react";
 import type { Route } from "./+types/atualizacao";
 import { listarEncomendas, type Encomenda } from "~/lib/api";
+import { requireUsuario } from "~/lib/auth.server";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent } from "~/components/ui/card";
 import {
@@ -20,7 +21,8 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "Atualização de Produção — Empac" }];
 }
 
-export async function loader({}: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireUsuario(request);
   return listarEncomendas({ abertos: true });
 }
 

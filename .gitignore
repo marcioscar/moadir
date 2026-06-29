@@ -5,3 +5,7 @@
 # React Router
 /.react-router/
 /build/
+
+# Dados de runtime (usuários, segredos — não versionar)
+/data/
+/secrets.env

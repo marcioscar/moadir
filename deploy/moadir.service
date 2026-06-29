@@ -19,6 +19,9 @@ WorkingDirectory=/opt/moadir
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=API_BASE=http://127.0.0.1:9080
+Environment=DATA_DIR=/opt/moadir/data
+# SESSION_SECRET é gerado pelo setup.sh em /opt/moadir/secrets.env (não versionado).
+EnvironmentFile=-/opt/moadir/secrets.env
 # Chama o binário do react-router-serve diretamente (é um script com shebang
 # que localiza o node no PATH — não prefixe com `node`, senão quebra).
 ExecStart=/opt/moadir/node_modules/.bin/react-router-serve ./build/server/index.js

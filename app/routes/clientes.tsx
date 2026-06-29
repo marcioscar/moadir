@@ -3,6 +3,7 @@ import { Users } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/clientes";
 import { listarClientes } from "~/lib/api";
+import { requireMinRole } from "~/lib/auth.server";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent } from "~/components/ui/card";
@@ -14,7 +15,8 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: "Clientes — Empac" }];
 }
 
-export async function loader({}: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireMinRole(request, "gerente");
   const data = await listarClientes({ limite: 100000 });
   return data;
 }

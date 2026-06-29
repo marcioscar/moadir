@@ -6,6 +6,12 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
+  // Rotas públicas (sem layout autenticado)
+  route("login", "routes/login.tsx"),
+  route("logout", "routes/logout.ts"),
+  route("trocar-senha", "routes/trocar-senha.tsx"),
+
+  // Rotas protegidas (dentro do layout autenticado)
   layout("layouts/app-layout.tsx", [
     index("routes/dashboard.tsx"),
     route("clientes", "routes/clientes.tsx"),
@@ -15,7 +21,10 @@ export default [
     route("atualizacao", "routes/atualizacao.tsx"),
     route("prejuizos", "routes/prejuizos.tsx"),
     route("relatorio", "routes/relatorio.tsx"),
+    route("admin/usuarios", "routes/admin.usuarios.tsx"),
   ]),
+
+  // API routes (sem layout)
   route("api/encomendas/detalhe", "routes/api.encomendas.detalhe.ts"),
   route("api/encomenda-estado", "routes/api.encomenda-estado.ts"),
 ] satisfies RouteConfig;
