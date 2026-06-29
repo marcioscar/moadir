@@ -124,7 +124,11 @@ const columns: ColumnDef<Produto>[] = [
 ];
 
 export default function Produtos({ loaderData }: Route.ComponentProps) {
-  const { produtos, total } = loaderData;
+  const { produtos, total, semana, fator } = loaderData;
+  const multiplicador = (fator / 10000).toLocaleString("pt-BR", {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  });
 
   return (
     <main className="mx-auto max-w-5xl space-y-6 p-6">
@@ -133,7 +137,9 @@ export default function Produtos({ loaderData }: Route.ComponentProps) {
         <div className="flex-1">
           <h1 className="text-2xl font-semibold tracking-tight">Produtos</h1>
           <p className="text-sm text-muted-foreground">
-            Cadastro de produtos consultado da API.
+            Preços corrigidos pelo fator da semana{" "}
+            <span className="font-medium text-foreground">{semana}</span>
+            {" "}(×{multiplicador})
           </p>
         </div>
         <Badge variant="secondary">{total} produto(s)</Badge>

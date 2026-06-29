@@ -97,10 +97,14 @@ export type Produto = {
 
 export type ProdutosResposta = {
   total: number;
+  /** Semana de referência do fator (ex: "26/26" = semana 26 do ano 2026) */
+  semana: string;
+  /** Fator semanal aplicado aos preços base (÷10000 = multiplicador) */
+  fator: number;
   produtos: Produto[];
 };
 
-// Cadastro de produtos (global ^EPR). Preços já vêm em reais (÷100 na API).
+// Cadastro de produtos (global ^EPR). Preços ajustados pelo fator semanal de ^EIN.
 export async function listarProdutos(params: {
   nome?: string;
   limite?: number;
