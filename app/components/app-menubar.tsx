@@ -9,6 +9,7 @@ import {
   ShieldIcon,
   LogOutIcon,
   UserCircle2Icon,
+  TrendingUpIcon,
 } from "lucide-react";
 import {
   Menubar,
@@ -123,6 +124,17 @@ export function AppMenubar({ user }: Props) {
               >
                 <ShieldIcon className="size-4 text-muted-foreground" />
                 Usuários
+              </MenubarItem>
+              <MenubarSeparator />
+              <MenubarItem
+                onClick={() => navigate("/admin/fator")}
+                className={cn(
+                  "cursor-pointer gap-2",
+                  pathname.startsWith("/admin/fator") && "bg-accent text-accent-foreground",
+                )}
+              >
+                <TrendingUpIcon className="size-4 text-muted-foreground" />
+                Fatores de Preço
               </MenubarItem>
             </MenubarContent>
           </MenubarMenu>

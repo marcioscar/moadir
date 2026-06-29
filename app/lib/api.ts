@@ -82,6 +82,36 @@ export async function obterRelatorio(params: {
   return getJson<RelatorioResposta>(url, "Erro ao gerar relatório");
 }
 
+export type FatorSemana = {
+  semana: string;
+  chave: string;
+  fator: number;
+};
+
+export type FatoresResposta = {
+  semanaAtual: string;
+  chaveAtual: string;
+  fatorAtual: number;
+  markup: number;
+  fatores: FatorSemana[];
+};
+
+export async function listarFatores(ultimas = 20): Promise<FatoresResposta> {
+  const url = new URL("/api/fatores", API_BASE);
+  url.searchParams.set("ultimas", String(ultimas));
+  return getJson<FatoresResposta>(url, "Erro ao buscar fatores");
+}
+
+export async function definirFator(
+  semana: string,
+  valor: number,
+): Promise<{ ok: boolean; semana?: string; fator?: number; erro?: string }> {
+  const url = new URL("/api/fator-set", API_BASE);
+  url.searchParams.set("semana", semana);
+  url.searchParams.set("valor", String(valor));
+  return getJson(url, "Erro ao salvar fator");
+}
+
 export type Produto = {
   id: number;
   descricao: string;

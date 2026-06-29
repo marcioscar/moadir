@@ -22,6 +22,7 @@ export default [
     route("prejuizos", "routes/prejuizos.tsx"),
     route("relatorio", "routes/relatorio.tsx"),
     route("admin/usuarios", "routes/admin.usuarios.tsx"),
+    route("admin/fator", "routes/admin.fator.tsx"),
   ]),
 
   // API routes (sem layout)
