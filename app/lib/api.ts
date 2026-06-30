@@ -205,6 +205,10 @@ export async function listarEncomendas(params: {
   cliente?: number;
   abertos?: boolean;
   limite?: number;
+  /** Lista da maior para a menor id (mais recentes primeiro) */
+  desc?: boolean;
+  /** Ignora encomendas com id maior que este (limita ao ciclo atual de numeração) */
+  idMax?: number;
 }): Promise<EncomendasResposta> {
   const url = new URL("/api/encomendas", API_BASE);
   if (params.estado !== undefined)
@@ -212,6 +216,8 @@ export async function listarEncomendas(params: {
   if (params.cliente) url.searchParams.set("cliente", String(params.cliente));
   if (params.abertos) url.searchParams.set("abertos", "1");
   if (params.limite) url.searchParams.set("limite", String(params.limite));
+  if (params.desc) url.searchParams.set("desc", "1");
+  if (params.idMax) url.searchParams.set("idmax", String(params.idMax));
   return getJson<EncomendasResposta>(url, "Erro ao buscar encomendas");
 }
 
@@ -219,6 +225,7 @@ export type MovimentoGSF = {
   seq: number;
   data: string;
   tipo: number;
+  requisicao: number;
   quantidade: number;
   unidade: string;
   produtoId: number;
@@ -272,4 +279,81 @@ export async function listarDcp(params: {
   if (params.fim) url.searchParams.set("fim", String(params.fim));
 
   return getJson<DcpResposta>(url, "Erro ao buscar planilhas de custo");
+}
+
+export type MovimentoPlanilha = {
+  seq: number;
+  data: string;
+  tipo: number;
+  reg: number;
+  qtdRaw: number;
+  qtdDec: number;
+  unidade: string;
+  produtoCod: string;
+  produtoId: number;
+  produtoNome: string;
+  /** Valor em centavos (negativo = crédito, ex.: aparas) */
+  valorCentavos: number;
+};
+
+export type ResumoPlanilha = {
+  /** Soma dos movimentos (materiais + mão de obra), em centavos */
+  direto: number;
+  indireto: number;
+  custoVendasPct: number;
+  custoVendas: number;
+  cFinanceiroDias: number;
+  cFinanceiro: number;
+  subtotal: number;
+  icmsPct: number;
+  icms: number;
+  irPisCofins: number;
+  total: number;
+  /** Quantidade base × preço de venda, em centavos */
+  vendasTotal: number;
+  /** vendasTotal - total; negativo = prejuízo */
+  resultado: number;
+  /** Peso total em gramas×10 (mesma escala de pesoKgUnit) */
+  pesoTotal: number;
+  /** Custo pós-cálculo por unidade, em centavos */
+  posCalc: number;
+  /** posCalc convertido para o fator base (sem o multiplicador semanal) */
+  posCalcFator: number;
+  /** Preço por kg necessário para lucro zero, em centavos */
+  paraLucro: number;
+  /** Diferença entre kg movimentados e kg apurados pelo peso cadastrado */
+  kgDif: number;
+};
+
+// Planilha de Custo de Encomendado — equivalente à rotina P34/PRO do sistema original.
+export type PlanilhaCusto = {
+  id: number;
+  produto: string;
+  unidade: string;
+  clienteId: number;
+  clienteNome: string;
+  dataPedido: string;
+  qtdPedida: number;
+  qtdProduzida: number;
+  aceitaAprox: string;
+  precoVenda: number;
+  precoCusto: number;
+  pesoKgUnit: number;
+  estado: number;
+  estadoNome: string;
+  /** Semana/ano do fator aplicado (semana do pedido), formato "AA/SS" */
+  semana: string;
+  fator: number;
+  qtdBase: number;
+  movimentos: MovimentoPlanilha[];
+  resumo: ResumoPlanilha;
+  origem: string;
+  classifFiscal: string;
+  ipi: string;
+};
+
+export async function obterPlanilha(id: number): Promise<PlanilhaCusto> {
+  const url = new URL("/api/planilha", API_BASE);
+  url.searchParams.set("id", String(id));
+  return getJson<PlanilhaCusto>(url, `Planilha de custo da encomenda ${id} não encontrada`);
 }

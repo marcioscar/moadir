@@ -28,7 +28,7 @@ export default function AppLayout() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="sticky top-0 z-50 border-b bg-background">
+      <header className="sticky top-0 z-50 border-b bg-background print:hidden">
         <div className="flex h-20 items-center gap-3 px-6">
           <NavLink to="/" className="flex-shrink-0 transition-opacity hover:opacity-80">
             <img

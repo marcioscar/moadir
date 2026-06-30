@@ -1,11 +1,18 @@
 import React from "react";
-import { useFetcher } from "react-router";
-import { Factory, TrendingUp, TrendingDown } from "lucide-react";
+import { useFetcher, Link } from "react-router";
+import { Factory, TrendingUp, TrendingDown, FileSpreadsheet } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/fila";
-import { listarEncomendas, type Encomenda, type EncomendaDetalhe, type MovimentoGSF } from "~/lib/api";
+import {
+  listarEncomendas,
+  type Encomenda,
+  type EncomendaDetalhe,
+  type MovimentoGSF,
+  type PlanilhaCusto,
+} from "~/lib/api";
 import { requireUsuario } from "~/lib/auth.server";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Select,
@@ -134,10 +141,12 @@ function DetalheDialog({
   onClose: () => void;
 }) {
   const fetcher = useFetcher<EncomendaDetalhe>();
+  const planilhaFetcher = useFetcher<PlanilhaCusto>();
 
   React.useEffect(() => {
     if (encomenda) {
       fetcher.load(`/api/encomendas/detalhe?id=${encomenda.id}`);
+      planilhaFetcher.load(`/api/planilha?id=${encomenda.id}`);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [encomenda?.id]);
@@ -145,20 +154,14 @@ function DetalheDialog({
   const detalhe = fetcher.data;
   const carregando = fetcher.state === "loading";
 
+  const resumo = planilhaFetcher.data?.resumo;
+  const carregandoPlanilha = planilhaFetcher.state === "loading";
+  const temPlanilha = !!resumo && (resumo.vendasTotal > 0 || resumo.direto > 0);
+
   const progresso =
     encomenda && encomenda.qtdPedida > 0
       ? encomenda.qtdProduzida / encomenda.qtdPedida
       : 0;
-
-  const custoProjetado = encomenda
-    ? encomenda.qtdPedida * encomenda.precoCusto
-    : 0;
-  const custoRealizado = encomenda
-    ? encomenda.qtdProduzida * encomenda.precoCusto
-    : 0;
-  const margem = encomenda
-    ? encomenda.valorOrcado - custoProjetado
-    : 0;
 
   return (
     <Dialog open={!!encomenda} onOpenChange={(open) => !open && onClose()}>
@@ -166,16 +169,24 @@ function DetalheDialog({
         {encomenda && (
           <>
             <DialogHeader>
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-sm text-muted-foreground">
-                  #{String(encomenda.id).padStart(4, "0")}
-                </span>
-                <Badge
-                  variant="outline"
-                  className={cn("text-xs", ESTAGIOS[encomenda.estado]?.className)}
-                >
-                  {ESTAGIOS[encomenda.estado]?.label}
-                </Badge>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-sm text-muted-foreground">
+                    #{String(encomenda.id).padStart(4, "0")}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={cn("text-xs", ESTAGIOS[encomenda.estado]?.className)}
+                  >
+                    {ESTAGIOS[encomenda.estado]?.label}
+                  </Badge>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link to={`/planilha/${encomenda.id}`}>
+                    <FileSpreadsheet className="size-3.5" />
+                    Planilha de Custo
+                  </Link>
+                </Button>
               </div>
               <DialogTitle>{encomenda.produto}</DialogTitle>
               <DialogDescription>{encomenda.clienteNome}</DialogDescription>
@@ -198,48 +209,51 @@ function DetalheDialog({
               </div>
             </div>
 
-            {/* Comparativo financeiro */}
-            {encomenda.valorOrcado === 0 && encomenda.precoCusto === 0 && encomenda.precoVenda === 0 ? (
+            {/* Comparativo financeiro — números reais da planilha de custo (materiais + mão de obra + indiretos + impostos) */}
+            {carregandoPlanilha ? (
+              <div className="rounded-lg border p-4">
+                <Skeleton className="h-20 w-full" />
+              </div>
+            ) : !temPlanilha ? (
               <div className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-                Orçamento não cadastrado para esta encomenda.
+                Sem movimentos de produção registrados para apurar custo.
               </div>
             ) : (
               <div className="rounded-lg border p-4">
-                <p className="mb-3 text-sm font-medium">Comparativo financeiro</p>
+                <p className="mb-3 text-sm font-medium">Comparativo financeiro (Planilha de Custo)</p>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                   <ValorComparativo
-                    label="Valor orçado"
-                    valor={encomenda.valorOrcado}
+                    label="Valor a faturar"
+                    valor={resumo!.vendasTotal / 100}
                   />
                   <ValorComparativo
-                    label="Custo projetado"
-                    valor={custoProjetado}
+                    label="Custo total"
+                    valor={resumo!.total / 100}
                   />
                   <ValorComparativo
-                    label="Margem orçada"
-                    valor={margem}
-                    destaque={margem >= 0 ? "positivo" : "negativo"}
+                    label="Resultado"
+                    valor={resumo!.resultado / 100}
+                    destaque={resumo!.resultado >= 0 ? "positivo" : "negativo"}
                   />
                   <ValorComparativo
-                    label="Custo realizado"
-                    valor={custoRealizado}
+                    label="Custo direto"
+                    valor={resumo!.direto / 100}
                     destaque="neutro"
                   />
                 </div>
                 <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  {margem >= 0 ? (
+                  {resumo!.resultado >= 0 ? (
                     <TrendingUp className="size-3.5 text-emerald-600" />
                   ) : (
                     <TrendingDown className="size-3.5 text-red-600" />
                   )}
                   <span>
-                    Margem de{" "}
-                    {encomenda.valorOrcado > 0
-                      ? pct.format(margem / encomenda.valorOrcado)
+                    {resumo!.resultado >= 0 ? "Lucro" : "Prejuízo"} de{" "}
+                    {resumo!.vendasTotal > 0
+                      ? pct.format(Math.abs(resumo!.resultado) / resumo!.vendasTotal)
                       : "—"}{" "}
-                    · Preço venda {brl.format(encomenda.precoVenda)}/
-                    {encomenda.unidade} · Custo {brl.format(encomenda.precoCusto)}/
-                    {encomenda.unidade}
+                    · Materiais/M.O. {brl.format(resumo!.direto / 100)} · Indiretos+impostos{" "}
+                    {brl.format((resumo!.total - resumo!.direto) / 100)}
                   </span>
                 </div>
               </div>

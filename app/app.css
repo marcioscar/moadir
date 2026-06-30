@@ -142,3 +142,15 @@ body {
     @apply font-sans;
   }
 }
+
+@media print {
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  tr,
+  td,
+  th {
+    break-inside: avoid;
+  }
+}

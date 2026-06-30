@@ -18,6 +18,7 @@ export default [
     route("clientes/:id", "routes/clientes.$id.tsx"),
     route("produtos", "routes/produtos.tsx"),
     route("fila", "routes/fila.tsx"),
+    route("planilha/:id", "routes/planilha.$id.tsx"),
     route("atualizacao", "routes/atualizacao.tsx"),
     route("prejuizos", "routes/prejuizos.tsx"),
     route("relatorio", "routes/relatorio.tsx"),
@@ -28,4 +29,5 @@ export default [
   // API routes (sem layout)
   route("api/encomendas/detalhe", "routes/api.encomendas.detalhe.ts"),
   route("api/encomenda-estado", "routes/api.encomenda-estado.ts"),
+  route("api/planilha", "routes/api.planilha.ts"),
 ] satisfies RouteConfig;
