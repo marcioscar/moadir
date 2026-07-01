@@ -191,6 +191,14 @@ export type Encomenda = {
   precoVenda: number;
   valorOrcado: number;
   pesoKg: number;
+  aceitaAprox: string;
+  localizacaoAlmox: string;
+  codOrigem: string;
+  classifFiscal: string;
+  tributadoIpi: string;
+  comissaoVenda: number;
+  diasPrazo: number;
+  icmPct: number;
   estado: number;
   estadoNome: string;
 };
@@ -241,14 +249,106 @@ export type EncomendaDetalhe = {
   dataPedido: string;
   qtdPedida: number;
   qtdProduzida: number;
+  embalagem: number;
   precoCusto: number;
   precoVenda: number;
   valorOrcado: number;
   pesoKg: number;
+  aceitaAprox: string;
+  localizacaoAlmox: string;
+  codOrigem: string;
+  classifFiscal: string;
+  tributadoIpi: string;
+  comissaoVenda: number;
+  diasPrazo: number;
+  icmPct: number;
   estado: number;
   estadoNome: string;
   movimentos: MovimentoGSF[];
 };
+
+export type NovaEncomendaParams = {
+  pr1: string;
+  pr2: string;
+  pr3: number;
+  pr4: string;
+  pr5: number;
+  pr6: string;
+  pr9: number;
+  pr10: number;
+  pr11: number;
+  pr12: number;
+  pr13: string;
+  pr14: number;
+  pr15: string;
+  pr16: string;
+  pr17: string;
+  pr23: number;
+  pr24: number;
+  pr25: number;
+};
+
+export type EncomendaResposta = { ok: boolean; id?: number; erro?: string };
+
+export async function criarEncomenda(
+  p: NovaEncomendaParams,
+): Promise<EncomendaResposta> {
+  const url = new URL("/api/encomenda-criar", API_BASE);
+  url.searchParams.set("pr1", p.pr1);
+  url.searchParams.set("pr2", p.pr2);
+  url.searchParams.set("pr3", String(p.pr3));
+  url.searchParams.set("pr4", p.pr4);
+  url.searchParams.set("pr5", String(p.pr5));
+  url.searchParams.set("pr6", p.pr6);
+  url.searchParams.set("pr9", String(p.pr9));
+  url.searchParams.set("pr10", String(p.pr10));
+  url.searchParams.set("pr11", String(p.pr11));
+  url.searchParams.set("pr12", String(p.pr12));
+  url.searchParams.set("pr13", p.pr13);
+  url.searchParams.set("pr14", String(p.pr14));
+  url.searchParams.set("pr15", p.pr15);
+  url.searchParams.set("pr16", p.pr16);
+  url.searchParams.set("pr17", p.pr17);
+  url.searchParams.set("pr23", String(p.pr23));
+  url.searchParams.set("pr24", String(p.pr24));
+  url.searchParams.set("pr25", String(p.pr25));
+  return getJson<EncomendaResposta>(url, "Erro ao criar encomenda");
+}
+
+export async function alterarEncomenda(
+  id: number,
+  p: NovaEncomendaParams,
+): Promise<EncomendaResposta> {
+  const url = new URL("/api/encomenda-alterar", API_BASE);
+  url.searchParams.set("id", String(id));
+  url.searchParams.set("pr1", p.pr1);
+  url.searchParams.set("pr2", p.pr2);
+  url.searchParams.set("pr3", String(p.pr3));
+  url.searchParams.set("pr4", p.pr4);
+  url.searchParams.set("pr5", String(p.pr5));
+  url.searchParams.set("pr6", p.pr6);
+  url.searchParams.set("pr9", String(p.pr9));
+  url.searchParams.set("pr10", String(p.pr10));
+  url.searchParams.set("pr11", String(p.pr11));
+  url.searchParams.set("pr12", String(p.pr12));
+  url.searchParams.set("pr13", p.pr13);
+  url.searchParams.set("pr14", String(p.pr14));
+  url.searchParams.set("pr15", p.pr15);
+  url.searchParams.set("pr16", p.pr16);
+  url.searchParams.set("pr17", p.pr17);
+  url.searchParams.set("pr23", String(p.pr23));
+  url.searchParams.set("pr24", String(p.pr24));
+  url.searchParams.set("pr25", String(p.pr25));
+  return getJson<EncomendaResposta>(url, "Erro ao alterar encomenda");
+}
+
+export async function excluirEncomenda(
+  id: number,
+): Promise<EncomendaResposta> {
+  const url = new URL("/api/encomenda-excluir", API_BASE);
+  url.searchParams.set("id", String(id));
+  return getJson<EncomendaResposta>(url, "Erro ao excluir encomenda");
+}
 
 export type EstadoAtualizacao = { ok: boolean; id: number; estado: number };
 

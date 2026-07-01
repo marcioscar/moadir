@@ -24,9 +24,13 @@ export default [
     route("relatorio", "routes/relatorio.tsx"),
     route("admin/usuarios", "routes/admin.usuarios.tsx"),
     route("admin/fator", "routes/admin.fator.tsx"),
+    route("encomendas/nova", "routes/encomendas.nova.tsx"),
+    route("encomendas/:id/editar", "routes/encomendas.$id.editar.tsx"),
   ]),
 
   // API routes (sem layout)
+  route("api/cliente", "routes/api.cliente.ts"),
+  route("api/clientes", "routes/api.clientes.ts"),
   route("api/encomendas/detalhe", "routes/api.encomendas.detalhe.ts"),
   route("api/encomenda-estado", "routes/api.encomenda-estado.ts"),
   route("api/planilha", "routes/api.planilha.ts"),

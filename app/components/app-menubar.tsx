@@ -10,6 +10,7 @@ import {
   LogOutIcon,
   UserCircle2Icon,
   TrendingUpIcon,
+  ClipboardList,
 } from "lucide-react";
 import {
   Menubar,
@@ -36,9 +37,10 @@ const GRUPOS = [
   },
   {
     label: "Produção",
-    prefixos: ["/fila", "/atualizacao"],
+    prefixos: ["/fila", "/atualizacao", "/encomendas"],
     minRole: "operador" as Role,
     itens: [
+      { label: "Nova Encomenda", path: "/encomendas/nova", icon: ClipboardList },
       { label: "Fila de Produção", path: "/fila", icon: FactoryIcon },
       { label: "Atualizar Estágio", path: "/atualizacao", icon: Settings2 },
     ],

@@ -1,6 +1,6 @@
 import React from "react";
 import { useFetcher, Link } from "react-router";
-import { Factory, TrendingUp, TrendingDown, FileSpreadsheet } from "lucide-react";
+import { Factory, TrendingUp, TrendingDown, FileSpreadsheet, Pencil } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/fila";
 import {
@@ -181,12 +181,20 @@ function DetalheDialog({
                     {ESTAGIOS[encomenda.estado]?.label}
                   </Badge>
                 </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link to={`/planilha/${encomenda.id}`}>
-                    <FileSpreadsheet className="size-3.5" />
-                    Planilha de Custo
-                  </Link>
-                </Button>
+                <div className="flex gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={`/encomendas/${encomenda.id}/editar`}>
+                      <Pencil className="size-3.5" />
+                      Editar
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={`/planilha/${encomenda.id}`}>
+                      <FileSpreadsheet className="size-3.5" />
+                      Planilha de Custo
+                    </Link>
+                  </Button>
+                </div>
               </div>
               <DialogTitle>{encomenda.produto}</DialogTitle>
               <DialogDescription>{encomenda.clienteNome}</DialogDescription>
