@@ -490,6 +490,7 @@ export type GuiaServicoDados = {
   pacotes: number;
   cintados: number;
   via: number;
+  requisicaoNumero: number | null;
 };
 
 export type GuiaServicoResposta = {

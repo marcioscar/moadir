@@ -54,6 +54,11 @@ export async function action({ request }: Route.ActionArgs) {
     return { erro: resultado.erro };
   }
 
+  // Vai direto para a Guia de Serviço da encomenda recém-criada, já que o
+  // fluxo de trabalho é gerar/editar a GS logo após cadastrar o pedido.
+  if (resultado.id) {
+    return redirect(`/guia-servico/${resultado.id}`);
+  }
   return redirect("/fila");
 }
 

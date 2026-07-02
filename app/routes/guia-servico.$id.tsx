@@ -80,6 +80,8 @@ const cm = (v: number) =>
   v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const esp = (v: number) =>
   v.toLocaleString("pt-BR", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+const viaLabel = (via: number) =>
+  via > 1 ? `${via}ª Via (Extra)` : "1ª Via";
 
 function fmtData(iso: string) {
   if (!iso) return "—";
@@ -604,7 +606,7 @@ function GuiaUniex({
       <CardContent className="space-y-5 pt-6 print:pt-0">
         <CabecalhoImpresso
           titulo="Guia de Serviço UNIEX — Extrusão"
-          via="1ª Via"
+          via={viaLabel(guia.via)}
         />
         <CabecalhoDados encomenda={encomenda} encomendaId={encomendaId} />
 
@@ -679,7 +681,7 @@ function GuiaUnicort({
       <CardContent className="space-y-5 pt-6 print:pt-0">
         <CabecalhoImpresso
           titulo="Guia de Serviço UNICORT — Corte/Solda"
-          via="1ª Via"
+          via={viaLabel(guia.via)}
         />
         <CabecalhoDados encomenda={encomenda} encomendaId={encomendaId} />
 
@@ -724,7 +726,7 @@ function GuiaUnipac({
       <CardContent className="space-y-5 pt-6 print:pt-0">
         <CabecalhoImpresso
           titulo="Guia de Serviço UNIPAC — Embalagem"
-          via="Via Extra"
+          via={viaLabel(guia.via)}
         />
         <CabecalhoDados encomenda={encomenda} encomendaId={encomendaId} />
 
@@ -754,7 +756,11 @@ function RequisicaoUnimat({ encomendaId, encomenda, guia }: SecaoProps) {
       <CardContent className="space-y-5 pt-6 print:pt-0">
         <CabecalhoImpresso
           titulo="Requisição à UNIMAT — Matéria-Prima"
-          via="(nº atribuído na impressão física)"
+          via={
+            guia.requisicaoNumero
+              ? `Requisição nº ${guia.requisicaoNumero}`
+              : "—"
+          }
         />
         <CabecalhoDados encomenda={encomenda} encomendaId={encomendaId} />
 
