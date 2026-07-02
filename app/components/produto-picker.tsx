@@ -1,7 +1,7 @@
 import React from "react";
 import { useFetcher } from "react-router";
 import { Loader2, Search, X } from "lucide-react";
-import type { ProdutosResposta } from "~/lib/api";
+import type { Produto, ProdutosResposta } from "~/lib/api";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -18,16 +18,47 @@ type Props = {
   onChange: (id: number, nome: string) => void;
 };
 
+type ProdutoLookup = Produto | { erro: string };
+
 export function ProdutoPicker({
   produtoId,
   produtoNome,
   placeholder = "Nenhum produto selecionado",
   onChange,
 }: Props) {
+  const [codeInput, setCodeInput] = React.useState(
+    produtoId > 0 ? String(produtoId) : "",
+  );
   const [aberto, setAberto] = React.useState(false);
   const [query, setQuery] = React.useState("");
+  const lookupFetcher = useFetcher<ProdutoLookup>();
   const searchFetcher = useFetcher<ProdutosResposta>();
   const nomeInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Sincroniza o campo de código quando produtoId muda (ex.: após escolher no diálogo)
+  React.useEffect(() => {
+    setCodeInput(produtoId > 0 ? String(produtoId) : "");
+  }, [produtoId]);
+
+  // Trata a resposta da busca por código
+  React.useEffect(() => {
+    if (!lookupFetcher.data) return;
+    const d = lookupFetcher.data;
+    if ("erro" in d || !d.descricao) {
+      onChange(0, "");
+    } else {
+      onChange(d.id, d.descricao);
+    }
+  }, [lookupFetcher.data]);
+
+  function triggerLookup() {
+    const id = Number(codeInput);
+    if (id > 0 && id !== produtoId) {
+      lookupFetcher.load(`/api/produto?id=${id}`);
+    } else if (!id) {
+      onChange(0, "");
+    }
+  }
 
   React.useEffect(() => {
     if (!aberto) {
@@ -49,6 +80,14 @@ export function ProdutoPicker({
 
   const produtos = searchFetcher.data?.produtos ?? [];
   const buscando = searchFetcher.state === "loading";
+  const validando = lookupFetcher.state === "loading";
+  const erroLookup =
+    (lookupFetcher.data && "erro" in lookupFetcher.data
+      ? lookupFetcher.data.erro
+      : undefined) ||
+    (lookupFetcher.data && !("erro" in lookupFetcher.data) && !lookupFetcher.data.descricao
+      ? "Produto não encontrado"
+      : undefined);
 
   function selecionar(id: number, nome: string) {
     onChange(id, nome);
@@ -58,8 +97,30 @@ export function ProdutoPicker({
   return (
     <>
       <div className="flex items-center gap-2">
+        <Input
+          value={codeInput}
+          onChange={(e) => setCodeInput(e.target.value)}
+          onBlur={triggerLookup}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              triggerLookup();
+            }
+          }}
+          placeholder="Cód."
+          className="w-20 shrink-0 font-mono"
+          inputMode="numeric"
+        />
+
         <div className="flex min-w-0 flex-1 items-center">
-          {produtoId > 0 ? (
+          {validando ? (
+            <span className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Loader2 className="size-3.5 animate-spin" />
+              Verificando...
+            </span>
+          ) : erroLookup ? (
+            <span className="text-sm text-destructive">{erroLookup}</span>
+          ) : produtoId > 0 ? (
             <span className="truncate text-sm">
               P{produtoId} - {produtoNome}
             </span>
@@ -86,7 +147,10 @@ export function ProdutoPicker({
             variant="ghost"
             size="icon"
             className="size-8 shrink-0"
-            onClick={() => onChange(0, "")}
+            onClick={() => {
+              onChange(0, "");
+              setCodeInput("");
+            }}
           >
             <X className="size-3.5" />
           </Button>

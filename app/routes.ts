@@ -32,6 +32,7 @@ export default [
   // API routes (sem layout)
   route("api/cliente", "routes/api.cliente.ts"),
   route("api/clientes", "routes/api.clientes.ts"),
+  route("api/produto", "routes/api.produto.ts"),
   route("api/produtos", "routes/api.produtos.ts"),
   route("api/encomendas/detalhe", "routes/api.encomendas.detalhe.ts"),
   route("api/encomenda-estado", "routes/api.encomenda-estado.ts"),

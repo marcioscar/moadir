@@ -146,6 +146,13 @@ export async function listarProdutos(params: {
   return getJson<ProdutosResposta>(url, "Erro ao buscar produtos");
 }
 
+export async function obterProduto(id: number): Promise<Produto> {
+  const url = new URL("/api/produto", API_BASE);
+  url.searchParams.set("id", String(id));
+
+  return getJson<Produto>(url, `Produto ${id} não encontrado`);
+}
+
 export async function obterCliente(id: number): Promise<ClienteDetalhe> {
   const url = new URL("/api/cliente", API_BASE);
   url.searchParams.set("id", String(id));
