@@ -524,6 +524,11 @@ export type SalvarGuiaServicoParams = {
   sanfonaMm: number;
   larguraDupla: boolean;
   cintados: number;
+  /** "manual" usa poliPesoKg/mistPesoKg/pigPesoKg em vez dos percentuais */
+  modoPeso?: "pct" | "manual";
+  poliPesoKg?: number;
+  mistPesoKg?: number;
+  pigPesoKg?: number;
 };
 
 export type GuiaServicoSalvarResposta = {
@@ -547,6 +552,12 @@ export async function salvarGuiaServico(
   url.searchParams.set("sanfonaMm", String(p.sanfonaMm));
   url.searchParams.set("larguraDupla", p.larguraDupla ? "1" : "0");
   url.searchParams.set("cintados", String(p.cintados));
+  if (p.modoPeso === "manual") {
+    url.searchParams.set("modoPeso", "manual");
+    url.searchParams.set("poliPesoKg", String(p.poliPesoKg ?? 0));
+    url.searchParams.set("mistPesoKg", String(p.mistPesoKg ?? 0));
+    url.searchParams.set("pigPesoKg", String(p.pigPesoKg ?? 0));
+  }
   return getJson<GuiaServicoSalvarResposta>(
     url,
     "Erro ao salvar guia de serviço",

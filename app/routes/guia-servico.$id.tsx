@@ -52,6 +52,8 @@ export async function action({ request, params }: Route.ActionArgs) {
   const get = (k: string) => String(fd.get(k) ?? "");
   const getNum = (k: string) => Number(fd.get(k) ?? 0);
 
+  const modoPeso = get("modoPeso") === "manual" ? "manual" : "pct";
+
   const resultado = await salvarGuiaServico({
     id,
     dpe: get("dpe"),
@@ -64,6 +66,10 @@ export async function action({ request, params }: Route.ActionArgs) {
     sanfonaMm: getNum("sanfonaMm"),
     larguraDupla: get("larguraDupla") === "1",
     cintados: getNum("cintados"),
+    modoPeso,
+    poliPesoKg: getNum("poliPesoKg"),
+    mistPesoKg: getNum("mistPesoKg"),
+    pigPesoKg: getNum("pigPesoKg"),
   });
 
   if (resultado.erro) {
@@ -246,6 +252,17 @@ export default function GuiaServicoPage({
   const [cintados, setCintados] = React.useState(String(guia?.cintados ?? ""));
   const [dpe, setDpe] = React.useState(guia?.dataPrevisaoEntrega ?? "");
 
+  const [pesoManual, setPesoManual] = React.useState(false);
+  const [poliPesoKg, setPoliPesoKg] = React.useState(
+    String(guia?.composicao.polietileno?.pesoKg ?? ""),
+  );
+  const [mistPesoKg, setMistPesoKg] = React.useState(
+    String(guia?.composicao.mistura?.pesoKg ?? ""),
+  );
+  const [pigPesoKg, setPigPesoKg] = React.useState(
+    String(guia?.composicao.pigmento?.pesoKg ?? ""),
+  );
+
   const mistPct = Math.max(
     0,
     100 - (Number(poliPct) || 0) - (pigmentado ? Number(pigPct) || 0 : 0),
@@ -361,9 +378,25 @@ export default function GuiaServicoPage({
 
           <Card>
             <CardContent className="pt-6">
-              <p className="mb-4 text-sm font-medium text-muted-foreground">
-                Composição / Matéria-Prima
-              </p>
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Composição / Matéria-Prima
+                </p>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 text-xs"
+                  onClick={() => setPesoManual((v) => !v)}
+                >
+                  {pesoManual
+                    ? "Calcular pesos por percentual"
+                    : "Inserir pesos manualmente"}
+                </Button>
+              </div>
+
+              <input type="hidden" name="modoPeso" value={pesoManual ? "manual" : "pct"} />
+
               <div className="space-y-4">
                 {pigmentado && (
                   <div>
@@ -379,15 +412,27 @@ export default function GuiaServicoPage({
                           }}
                         />
                       </div>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={pigPct}
-                        onChange={(e) => setPigPct(e.target.value)}
-                        className="w-24"
-                        placeholder="%"
-                      />
+                      {pesoManual ? (
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.001"
+                          value={pigPesoKg}
+                          onChange={(e) => setPigPesoKg(e.target.value)}
+                          className="w-28"
+                          placeholder="kg"
+                        />
+                      ) : (
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={pigPct}
+                          onChange={(e) => setPigPct(e.target.value)}
+                          className="w-24"
+                          placeholder="%"
+                        />
+                      )}
                     </div>
                   </div>
                 )}
@@ -407,15 +452,27 @@ export default function GuiaServicoPage({
                         }}
                       />
                     </div>
-                    <Input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={poliPct}
-                      onChange={(e) => setPoliPct(e.target.value)}
-                      className="w-24"
-                      placeholder="%"
-                    />
+                    {pesoManual ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.001"
+                        value={poliPesoKg}
+                        onChange={(e) => setPoliPesoKg(e.target.value)}
+                        className="w-28"
+                        placeholder="kg"
+                      />
+                    ) : (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={poliPct}
+                        onChange={(e) => setPoliPct(e.target.value)}
+                        className="w-24"
+                        placeholder="%"
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -434,18 +491,39 @@ export default function GuiaServicoPage({
                         }}
                       />
                     </div>
-                    <div className="flex w-24 items-center justify-center rounded-md border bg-muted px-2 py-1.5 text-sm tabular-nums">
-                      {mistPct}%
-                    </div>
+                    {pesoManual ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.001"
+                        value={mistPesoKg}
+                        onChange={(e) => setMistPesoKg(e.target.value)}
+                        className="w-28"
+                        placeholder="kg"
+                      />
+                    ) : (
+                      <div className="flex w-24 items-center justify-center rounded-md border bg-muted px-2 py-1.5 text-sm tabular-nums">
+                        {mistPct}%
+                      </div>
+                    )}
                     <input type="hidden" name="poliPct" value={poliPct || 0} />
                     <input
                       type="hidden"
                       name="pigPct"
                       value={pigmentado ? pigPct || 0 : 0}
                     />
+                    <input type="hidden" name="poliPesoKg" value={poliPesoKg || 0} />
+                    <input type="hidden" name="mistPesoKg" value={mistPesoKg || 0} />
+                    <input
+                      type="hidden"
+                      name="pigPesoKg"
+                      value={pigmentado ? pigPesoKg || 0 : 0}
+                    />
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Calculado automaticamente: 100% − Polietileno − Pigmento.
+                    {pesoManual
+                      ? "Peso informado diretamente em kg, sem cálculo por percentual."
+                      : "Mistura calculada automaticamente: 100% − Polietileno − Pigmento."}
                   </p>
                 </div>
               </div>

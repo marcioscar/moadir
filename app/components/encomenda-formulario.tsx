@@ -6,6 +6,7 @@ import {
   MATERIAIS,
   TIPOS_POR_MATERIAL,
   montarSigla,
+  normalizarDimensoes,
   parseProduto,
   type Impressao,
 } from "~/lib/produto";
@@ -272,7 +273,7 @@ export function EncomendaFormulario({ encomenda, erro }: Props) {
     nVerso,
   });
   const produtoComposto = dimensoes
-    ? `${siglaMontada} ${dimensoes}`
+    ? `${siglaMontada} ${normalizarDimensoes(dimensoes)}`
     : siglaMontada;
   const produtoFinal = modoManual ? produtoManual : produtoComposto;
   const produtoValido =

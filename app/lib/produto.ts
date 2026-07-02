@@ -66,9 +66,18 @@ export function parseProduto(produto: string) {
   };
 }
 
+// Deixa "10 x 10 x 0,010" / "10X10X0,010" / "10×10×0,010" no formato
+// canônico "10X10X0,010", que é o que o backend (MUMPS, case-sensitive)
+// espera pra calcular metros/peso corretamente.
+export function normalizarDimensoes(dimensoes: string) {
+  return dimensoes
+    .trim()
+    .replace(/\s*[xX×]\s*/g, "X");
+}
+
 // "19,5X31X0,016" -> { larCm: 19.5, comCm: 31, espCm: 0.016 }
 export function parseDimensoes(dimensoes: string) {
-  const [larRaw, comRaw, espRaw] = dimensoes.split("X");
+  const [larRaw, comRaw, espRaw] = normalizarDimensoes(dimensoes).split("X");
   const paraNumero = (v: string | undefined) =>
     v ? Number(v.replace(",", ".")) : 0;
   return {
