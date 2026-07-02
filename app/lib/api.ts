@@ -457,3 +457,97 @@ export async function obterPlanilha(id: number): Promise<PlanilhaCusto> {
   url.searchParams.set("id", String(id));
   return getJson<PlanilhaCusto>(url, `Planilha de custo da encomenda ${id} não encontrada`);
 }
+
+export type ComposicaoItem = {
+  produtoId: number;
+  produtoNome: string;
+  pesoKg: number;
+  localizacao: string;
+} | null;
+
+export type GuiaServicoEncomenda = {
+  produto: string;
+  unidade: string;
+  clienteId: number;
+  clienteNome: string;
+  dataPedido: string;
+  qtdPedida: number;
+  embalagem: number;
+};
+
+export type GuiaServicoDados = {
+  dataPrevisaoEntrega: string;
+  composicao: {
+    pigmento: ComposicaoItem;
+    polietileno: ComposicaoItem;
+    mistura: ComposicaoItem;
+  };
+  sanfona: { tipo: "L" | "F" | "N"; mm: number };
+  larguraDupla: boolean;
+  metrosExtrudar: number;
+  larguraExtrusaoCm: number;
+  pesoMetroGramas: number;
+  pacotes: number;
+  cintados: number;
+  via: number;
+};
+
+export type GuiaServicoResposta = {
+  encomendaId: number;
+  existeGuia: boolean;
+  encomenda: GuiaServicoEncomenda;
+  guia: GuiaServicoDados | null;
+  erro?: string;
+};
+
+export async function buscarGuiaServico(
+  encomendaId: number,
+): Promise<GuiaServicoResposta> {
+  const url = new URL("/api/guia-servico", API_BASE);
+  url.searchParams.set("id", String(encomendaId));
+  return getJson<GuiaServicoResposta>(
+    url,
+    `Guia de serviço da encomenda ${encomendaId} não encontrada`,
+  );
+}
+
+export type SalvarGuiaServicoParams = {
+  id: number;
+  dpe: string;
+  pigId: number;
+  pigPct: number;
+  poliId: number;
+  poliPct: number;
+  mistId: number;
+  sanfonaTipo: "L" | "F" | "N";
+  sanfonaMm: number;
+  larguraDupla: boolean;
+  cintados: number;
+};
+
+export type GuiaServicoSalvarResposta = {
+  ok: boolean;
+  id?: number;
+  erro?: string;
+};
+
+export async function salvarGuiaServico(
+  p: SalvarGuiaServicoParams,
+): Promise<GuiaServicoSalvarResposta> {
+  const url = new URL("/api/guia-servico-salvar", API_BASE);
+  url.searchParams.set("id", String(p.id));
+  url.searchParams.set("dpe", p.dpe);
+  url.searchParams.set("pigId", String(p.pigId));
+  url.searchParams.set("pigPct", String(p.pigPct));
+  url.searchParams.set("poliId", String(p.poliId));
+  url.searchParams.set("poliPct", String(p.poliPct));
+  url.searchParams.set("mistId", String(p.mistId));
+  url.searchParams.set("sanfonaTipo", p.sanfonaTipo);
+  url.searchParams.set("sanfonaMm", String(p.sanfonaMm));
+  url.searchParams.set("larguraDupla", p.larguraDupla ? "1" : "0");
+  url.searchParams.set("cintados", String(p.cintados));
+  return getJson<GuiaServicoSalvarResposta>(
+    url,
+    "Erro ao salvar guia de serviço",
+  );
+}

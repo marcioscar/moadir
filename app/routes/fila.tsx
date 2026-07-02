@@ -1,6 +1,6 @@
 import React from "react";
 import { useFetcher, Link } from "react-router";
-import { Factory, TrendingUp, TrendingDown, FileSpreadsheet, Pencil } from "lucide-react";
+import { Factory, TrendingUp, TrendingDown, FileSpreadsheet, Pencil, ClipboardList } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/fila";
 import {
@@ -192,6 +192,12 @@ function DetalheDialog({
                     <Link to={`/planilha/${encomenda.id}`}>
                       <FileSpreadsheet className="size-3.5" />
                       Planilha de Custo
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={`/guia-servico/${encomenda.id}`}>
+                      <ClipboardList className="size-3.5" />
+                      Guia de Serviço
                     </Link>
                   </Button>
                 </div>

@@ -2,6 +2,13 @@ import React from "react";
 import { Form, Link, useNavigation, useFetcher } from "react-router";
 import { Loader2, Search, X } from "lucide-react";
 import type { ClientesResposta, EncomendaDetalhe } from "~/lib/api";
+import {
+  MATERIAIS,
+  TIPOS_POR_MATERIAL,
+  montarSigla,
+  parseProduto,
+  type Impressao,
+} from "~/lib/produto";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -26,69 +33,6 @@ type Props = {
   encomenda?: EncomendaDetalhe;
   erro?: string;
 };
-
-const MATERIAIS = [
-  { value: "A", label: "PEAD" },
-  { value: "B", label: "PEBD" },
-  { value: "P", label: "PP" },
-] as const;
-
-const TIPOS_POR_MATERIAL: Record<string, { value: string; label: string }[]> = {
-  A: [
-    { value: "SS", label: "Sacola Tipo Camiseta" },
-    { value: "SC", label: "Sacola Furo Vazado" },
-    { value: "SL", label: "Saco Solda Lateral" },
-    { value: "SF", label: "Saco Solda Fundo" },
-    { value: "BT", label: "Bobina" },
-  ],
-  B: [
-    { value: "SS", label: "Sacola Tipo Camiseta" },
-    { value: "SC", label: "Sacola Furo Vazado" },
-    { value: "SL", label: "Saco Solda Lateral" },
-    { value: "SF", label: "Saco Solda Fundo" },
-    { value: "BT", label: "Bobina" },
-  ],
-  P: [
-    { value: "SL", label: "Saco" },
-    { value: "BT", label: "Bobina" },
-  ],
-};
-
-type Impressao = "L" | "F" | "FV";
-
-const SIGLA_REGEX =
-  /^(SS|SC|SL|SF|BT)([ABP])([NP])(?:I(\d+)(?:\+(\d+))?)?$/;
-
-function montarSigla(s: {
-  tipo: string;
-  material: string;
-  cor: string;
-  impressao: Impressao;
-  nFrente: string;
-  nVerso: string;
-}) {
-  let sufixo = "";
-  if (s.impressao === "F") sufixo = `I${s.nFrente || "1"}`;
-  if (s.impressao === "FV") sufixo = `I${s.nFrente || "1"}+${s.nVerso || "1"}`;
-  return `${s.tipo}${s.material}${s.cor}${sufixo}`;
-}
-
-function parseProduto(produto: string) {
-  const [sigla, ...resto] = produto.trim().split(/\s+/);
-  if (!sigla) return null;
-  const m = sigla.match(SIGLA_REGEX);
-  if (!m) return null;
-  const [, tipo, material, cor, nFrente, nVerso] = m;
-  return {
-    tipo,
-    material,
-    cor,
-    impressao: (nFrente ? (nVerso ? "FV" : "F") : "L") as Impressao,
-    nFrente: nFrente ?? "1",
-    nVerso: nVerso ?? "1",
-    dimensoes: resto.join(" "),
-  };
-}
 
 type ClienteLookup = { id: number; nome: string; erro?: string };
 
