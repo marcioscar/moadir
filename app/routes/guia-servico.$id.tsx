@@ -15,6 +15,7 @@ import {
   parseProduto,
   soldaPorTipo,
 } from "~/lib/produto";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -86,20 +87,78 @@ function fmtData(iso: string) {
   return `${d}/${m}/${y}`;
 }
 
-function CabecalhoImpresso({ titulo }: { titulo: string }) {
+function CabecalhoImpresso({
+  titulo,
+  via,
+}: {
+  titulo: string;
+  via: string;
+}) {
   return (
-    <div className="flex items-center gap-3 border-b pb-3">
-      <img
-        src="/LogoEmpac1.png"
-        alt="Empac Agroindustrial de Plásticos"
-        className="h-10 w-auto object-contain"
-      />
-      <div>
-        <p className="text-sm font-semibold">
-          Empac Agroindustrial de Plásticos Ltda
-        </p>
-        <p className="text-xs text-muted-foreground">{titulo}</p>
+    <div className="flex items-center justify-between gap-3 border-b pb-4">
+      <div className="flex items-center gap-3">
+        <img
+          src="/LogoEmpac1.png"
+          alt="Empac Agroindustrial de Plásticos"
+          className="h-9 w-auto object-contain"
+        />
+        <div>
+          <p className="text-sm font-semibold leading-tight">
+            Empac Agroindustrial de Plásticos Ltda
+          </p>
+          <p className="text-xs text-muted-foreground">{titulo}</p>
+        </div>
       </div>
+      <Badge variant="outline" className="print:border-black print:text-black">
+        {via}
+      </Badge>
+    </div>
+  );
+}
+
+function Campo({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-sm font-medium">{value}</p>
+    </div>
+  );
+}
+
+function CabecalhoDados({
+  encomenda,
+  encomendaId,
+}: {
+  encomenda: Route.ComponentProps["loaderData"]["encomenda"];
+  encomendaId: number;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <Campo label="Data do Pedido" value={fmtData(encomenda.dataPedido)} />
+      <Campo label="Encomenda de" value={encomenda.clienteNome} />
+      <Campo label="Código Cliente" value={encomenda.clienteId} />
+      <Campo
+        label="Guia"
+        value={`#${String(encomendaId).padStart(5, "0")}`}
+      />
+      <Campo
+        label="Quantidade"
+        value={`${encomenda.qtdPedida.toLocaleString("pt-BR")} ${encomenda.unidade}`}
+        className="col-span-2"
+      />
+      <Campo
+        label="Produto"
+        value={encomenda.produto}
+        className="col-span-2 font-mono"
+      />
     </div>
   );
 }
@@ -533,76 +592,68 @@ function GuiaUniex({
   materialNome: string;
   dim: { larCm: number; comCm: number; espCm: number } | null;
 }) {
+  const composicaoItens = [
+    guia.composicao.polietileno,
+    guia.composicao.mistura,
+    guia.composicao.pigmento,
+  ].filter((i): i is NonNullable<typeof i> => i !== null);
+  const pesoTotal = composicaoItens.reduce((s, i) => s + i.pesoKg, 0);
+
   return (
     <Card className="print:break-after-page print:rounded-none print:border-0 print:shadow-none">
-      <CardContent className="space-y-3 pt-6 font-mono text-sm print:pt-0">
-        <CabecalhoImpresso titulo="Guia de Serviço UNIEX (Extrusão) — 1ª Via" />
-        <div className="flex justify-between gap-4">
-          <span>Data Pedido: {fmtData(encomenda.dataPedido)}</span>
-          <span>Encomenda de: {encomenda.clienteNome}</span>
-          <span>Cód.: {encomenda.clienteId}</span>
+      <CardContent className="space-y-5 pt-6 print:pt-0">
+        <CabecalhoImpresso
+          titulo="Guia de Serviço UNIEX — Extrusão"
+          via="1ª Via"
+        />
+        <CabecalhoDados encomenda={encomenda} encomendaId={encomendaId} />
+
+        <div>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">
+            Extrusora de {materialNome} — {tipoNome}
+          </p>
+          <table className="w-full text-sm">
+            <tbody className="divide-y">
+              {composicaoItens.map((item) => (
+                <tr key={item.produtoId}>
+                  <td className="py-1.5">
+                    P{item.produtoId} - {item.produtoNome}
+                  </td>
+                  <td className="py-1.5 text-right font-medium tabular-nums">
+                    {kg(item.pesoKg)} kg
+                  </td>
+                </tr>
+              ))}
+              <tr className="border-t font-semibold">
+                <td className="py-1.5">Peso total</td>
+                <td className="py-1.5 text-right tabular-nums">
+                  {kg(pesoTotal)} kg
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div className="flex justify-between gap-4">
-          <span>
-            Guia n. {String(encomendaId).padStart(5, "0")} —{" "}
-            {encomenda.qtdPedida.toLocaleString("pt-BR")} {encomenda.unidade}{" "}
-            {encomenda.produto}
-          </span>
+
+        <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/50 p-4 sm:grid-cols-4">
+          <Campo label="Produzir" value={`${metros(guia.metrosExtrudar)} m`} />
+          <Campo
+            label="Largura de extrusão"
+            value={`${cm(guia.larguraExtrusaoCm)} cm`}
+          />
+          <Campo
+            label="Espessura"
+            value={dim ? `${esp(dim.espCm)} cm` : "—"}
+          />
+          <Campo
+            label="Peso por metro (confira)"
+            value={`${guia.pesoMetroGramas} g`}
+          />
         </div>
-        <p>
-          Extrusora de {materialNome} — {tipoNome}
-        </p>
-        <div className="border-t pt-2">
-          {guia.composicao.polietileno && (
-            <div className="flex justify-between gap-4">
-              <span>
-                P{guia.composicao.polietileno.produtoId} -{" "}
-                {guia.composicao.polietileno.produtoNome}
-              </span>
-              <span>{kg(guia.composicao.polietileno.pesoKg)} kg</span>
-            </div>
-          )}
-          {guia.composicao.mistura && (
-            <div className="flex justify-between gap-4">
-              <span>
-                P{guia.composicao.mistura.produtoId} -{" "}
-                {guia.composicao.mistura.produtoNome}
-              </span>
-              <span>{kg(guia.composicao.mistura.pesoKg)} kg</span>
-            </div>
-          )}
-          {guia.composicao.pigmento && (
-            <div className="flex justify-between gap-4">
-              <span>
-                P{guia.composicao.pigmento.produtoId} -{" "}
-                {guia.composicao.pigmento.produtoNome}
-              </span>
-              <span>{kg(guia.composicao.pigmento.pesoKg)} kg</span>
-            </div>
-          )}
-        </div>
-        <div className="flex justify-between gap-4 border-t pt-2">
-          <span>Produzir {metros(guia.metrosExtrudar)} metros</span>
-          <span>
-            Peso (Kg) total:{" "}
-            {kg(
-              (guia.composicao.polietileno?.pesoKg ?? 0) +
-                (guia.composicao.mistura?.pesoKg ?? 0) +
-                (guia.composicao.pigmento?.pesoKg ?? 0),
-            )}
-          </span>
-        </div>
-        <p>
-          Extrusar na largura de: {cm(guia.larguraExtrusaoCm)} cm — Espessura:{" "}
-          {dim ? esp(dim.espCm) : "—"} cm
-        </p>
-        <p>
-          Confira: 1 metro deste filme deve pesar {guia.pesoMetroGramas} gramas
-        </p>
-        <p>
+
+        <p className="text-sm text-muted-foreground">
           {guia.sanfona.tipo === "N"
-            ? "Sem sanfona na extrusão"
-            : `Sanfona ${guia.sanfona.tipo === "L" ? "lateral" : "de fundo"}: ${guia.sanfona.mm} mm`}
+            ? "Sem sanfona na extrusão."
+            : `Sanfona ${guia.sanfona.tipo === "L" ? "lateral" : "de fundo"}: ${guia.sanfona.mm} mm.`}
         </p>
       </CardContent>
     </Card>
@@ -625,32 +676,37 @@ function GuiaUnicort({
 }) {
   return (
     <Card className="print:break-after-page print:rounded-none print:border-0 print:shadow-none">
-      <CardContent className="space-y-3 pt-6 font-mono text-sm print:pt-0">
-        <CabecalhoImpresso titulo="Guia de Serviço UNICORT (Corte/Solda) — 1ª Via" />
-        <div className="flex justify-between gap-4">
-          <span>Data Pedido: {fmtData(encomenda.dataPedido)}</span>
-          <span>Encomenda de: {encomenda.clienteNome}</span>
-          <span>Cód.: {encomenda.clienteId}</span>
+      <CardContent className="space-y-5 pt-6 print:pt-0">
+        <CabecalhoImpresso
+          titulo="Guia de Serviço UNICORT — Corte/Solda"
+          via="1ª Via"
+        />
+        <CabecalhoDados encomenda={encomenda} encomendaId={encomendaId} />
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <Campo label="Tipo" value={tipoNome} />
+          <Campo
+            label="Bobinas"
+            value={
+              pigmentado && guia.composicao.pigmento
+                ? `${materialNome} / Cor: ${guia.composicao.pigmento.produtoNome}`
+                : materialNome
+            }
+          />
+          <Campo
+            label="Solda"
+            value={solda === "SL" ? "Lateral" : "De fundo"}
+          />
         </div>
-        <div>
-          Guia n. {String(encomendaId).padStart(5, "0")} —{" "}
-          {encomenda.qtdPedida.toLocaleString("pt-BR")} {encomenda.unidade} —{" "}
-          {tipoNome}
-        </div>
-        <p>{encomenda.produto}</p>
-        <p>
-          Bobinas: {materialNome}
-          {pigmentado && guia.composicao.pigmento
-            ? ` / Cor: ${guia.composicao.pigmento.produtoNome}`
-            : ""}
-        </p>
-        <p>
+
+        <p className="text-sm text-muted-foreground">
           Use máquina: CS ______ com solda{" "}
-          {solda === "SL" ? "lateral" : "de fundo"}
+          {solda === "SL" ? "lateral" : "de fundo"}.
         </p>
-        <div className="flex justify-between gap-4 border-t pt-2">
-          <span>Cintar com: {guia.cintados}</span>
-          <span>Empacotar de: {guia.pacotes} unidades</span>
+
+        <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/50 p-4">
+          <Campo label="Cintar com" value={guia.cintados} />
+          <Campo label="Empacotar de" value={`${guia.pacotes} unidades`} />
         </div>
       </CardContent>
     </Card>
@@ -665,26 +721,22 @@ function GuiaUnipac({
 }: SecaoProps & { tipoNome: string }) {
   return (
     <Card className="print:break-after-page print:rounded-none print:border-0 print:shadow-none">
-      <CardContent className="space-y-3 pt-6 font-mono text-sm print:pt-0">
-        <CabecalhoImpresso titulo="Guia de Serviço UNIPAC (Embalagem) — Via Extra" />
-        <div className="flex justify-between gap-4">
-          <span>Data Pedido: {fmtData(encomenda.dataPedido)}</span>
-          <span>Encomenda de: {encomenda.clienteNome}</span>
-          <span>Cód.: {encomenda.clienteId}</span>
+      <CardContent className="space-y-5 pt-6 print:pt-0">
+        <CabecalhoImpresso
+          titulo="Guia de Serviço UNIPAC — Embalagem"
+          via="Via Extra"
+        />
+        <CabecalhoDados encomenda={encomenda} encomendaId={encomendaId} />
+
+        <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted/50 p-4">
+          <Campo label="Cintar com" value={guia.cintados} />
+          <Campo label="Empacotar de" value={`${guia.pacotes} unidades`} />
         </div>
+
         <div>
-          Guia n. {String(encomendaId).padStart(5, "0")} —{" "}
-          {encomenda.qtdPedida.toLocaleString("pt-BR")} {encomenda.unidade} —{" "}
-          {tipoNome}
+          <p className="text-xs text-muted-foreground">Observações</p>
+          <div className="mt-1 h-10 rounded-md border border-dashed" />
         </div>
-        <p>{encomenda.produto}</p>
-        <div className="flex justify-between gap-4 border-t pt-2">
-          <span>Cintar com: {guia.cintados}</span>
-          <span>Empacotar de: {guia.pacotes} unidades</span>
-        </div>
-        <p className="text-muted-foreground print:text-black">
-          Observações: ______________________________________________
-        </p>
       </CardContent>
     </Card>
   );
@@ -699,33 +751,35 @@ function RequisicaoUnimat({ encomendaId, encomenda, guia }: SecaoProps) {
 
   return (
     <Card className="print:rounded-none print:border-0 print:shadow-none">
-      <CardContent className="space-y-3 pt-6 font-mono text-sm print:pt-0">
-        <CabecalhoImpresso titulo="Requisição à UNIMAT" />
-        <div className="flex justify-between gap-4">
-          <span>Data Pedido: {fmtData(encomenda.dataPedido)}</span>
-          <span>Encomenda de: {encomenda.clienteNome}</span>
-          <span>Cód.: {encomenda.clienteId}</span>
-        </div>
-        <div>
-          Guia n. {String(encomendaId).padStart(5, "0")} — Requisição n.
-          (atribuída na impressão física)
-        </div>
-        <table className="w-full border-t text-left">
+      <CardContent className="space-y-5 pt-6 print:pt-0">
+        <CabecalhoImpresso
+          titulo="Requisição à UNIMAT — Matéria-Prima"
+          via="(nº atribuído na impressão física)"
+        />
+        <CabecalhoDados encomenda={encomenda} encomendaId={encomendaId} />
+
+        <table className="w-full text-sm">
           <thead>
-            <tr className="text-xs text-muted-foreground print:text-black">
-              <th className="pt-2 font-normal">Local</th>
-              <th className="pt-2 font-normal">Código</th>
-              <th className="pt-2 font-normal">Descrição</th>
-              <th className="pt-2 text-right font-normal">Quantidade</th>
+            <tr className="border-b text-xs text-muted-foreground">
+              <th className="py-2 pr-3 text-left font-medium">Local</th>
+              <th className="py-2 pr-3 text-left font-medium">Código</th>
+              <th className="py-2 pr-3 text-left font-medium">Descrição</th>
+              <th className="py-2 pr-3 text-right font-medium">Quantidade</th>
+              <th className="py-2 text-left font-medium">Lanç. Requisitante</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y">
             {itens.map((item) => (
               <tr key={item.produtoId}>
-                <td className="py-0.5">{item.localizacao}</td>
-                <td className="py-0.5">P{item.produtoId}</td>
-                <td className="py-0.5">{item.produtoNome}</td>
-                <td className="py-0.5 text-right">{kg(item.pesoKg)} kg</td>
+                <td className="py-2 pr-3 font-mono text-xs">
+                  {item.localizacao || "—"}
+                </td>
+                <td className="py-2 pr-3 font-mono text-xs">P{item.produtoId}</td>
+                <td className="py-2 pr-3">{item.produtoNome}</td>
+                <td className="py-2 pr-3 text-right font-medium tabular-nums">
+                  {kg(item.pesoKg)} kg
+                </td>
+                <td className="py-2" />
               </tr>
             ))}
           </tbody>
