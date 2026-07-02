@@ -27,6 +27,69 @@ type Props = {
   erro?: string;
 };
 
+const MATERIAIS = [
+  { value: "A", label: "PEAD" },
+  { value: "B", label: "PEBD" },
+  { value: "P", label: "PP" },
+] as const;
+
+const TIPOS_POR_MATERIAL: Record<string, { value: string; label: string }[]> = {
+  A: [
+    { value: "SS", label: "Sacola Tipo Camiseta" },
+    { value: "SC", label: "Sacola Furo Vazado" },
+    { value: "SL", label: "Saco Solda Lateral" },
+    { value: "SF", label: "Saco Solda Fundo" },
+    { value: "BT", label: "Bobina" },
+  ],
+  B: [
+    { value: "SS", label: "Sacola Tipo Camiseta" },
+    { value: "SC", label: "Sacola Furo Vazado" },
+    { value: "SL", label: "Saco Solda Lateral" },
+    { value: "SF", label: "Saco Solda Fundo" },
+    { value: "BT", label: "Bobina" },
+  ],
+  P: [
+    { value: "SL", label: "Saco" },
+    { value: "BT", label: "Bobina" },
+  ],
+};
+
+type Impressao = "L" | "F" | "FV";
+
+const SIGLA_REGEX =
+  /^(SS|SC|SL|SF|BT)([ABP])([NP])(?:I(\d+)(?:\+(\d+))?)?$/;
+
+function montarSigla(s: {
+  tipo: string;
+  material: string;
+  cor: string;
+  impressao: Impressao;
+  nFrente: string;
+  nVerso: string;
+}) {
+  let sufixo = "";
+  if (s.impressao === "F") sufixo = `I${s.nFrente || "1"}`;
+  if (s.impressao === "FV") sufixo = `I${s.nFrente || "1"}+${s.nVerso || "1"}`;
+  return `${s.tipo}${s.material}${s.cor}${sufixo}`;
+}
+
+function parseProduto(produto: string) {
+  const [sigla, ...resto] = produto.trim().split(/\s+/);
+  if (!sigla) return null;
+  const m = sigla.match(SIGLA_REGEX);
+  if (!m) return null;
+  const [, tipo, material, cor, nFrente, nVerso] = m;
+  return {
+    tipo,
+    material,
+    cor,
+    impressao: (nFrente ? (nVerso ? "FV" : "F") : "L") as Impressao,
+    nFrente: nFrente ?? "1",
+    nVerso: nVerso ?? "1",
+    dimensoes: resto.join(" "),
+  };
+}
+
 type ClienteLookup = { id: number; nome: string; erro?: string };
 
 function ClientePicker({
@@ -238,6 +301,39 @@ export function EncomendaFormulario({ encomenda, erro }: Props) {
 
   const d = encomenda;
 
+  const parsed = React.useMemo(() => parseProduto(d?.produto ?? ""), [d]);
+  const [modoManual, setModoManual] = React.useState(!!d?.produto && !parsed);
+  const [produtoManual, setProdutoManual] = React.useState(d?.produto ?? "");
+  const [material, setMaterial] = React.useState(parsed?.material ?? "A");
+  const [tipo, setTipo] = React.useState(parsed?.tipo ?? "SS");
+  const [cor, setCor] = React.useState(parsed?.cor ?? "N");
+  const [impressao, setImpressao] = React.useState<Impressao>(
+    parsed?.impressao ?? "L",
+  );
+  const [nFrente, setNFrente] = React.useState(parsed?.nFrente ?? "1");
+  const [nVerso, setNVerso] = React.useState(parsed?.nVerso ?? "1");
+  const [dimensoes, setDimensoes] = React.useState(parsed?.dimensoes ?? "");
+
+  React.useEffect(() => {
+    const opcoes = TIPOS_POR_MATERIAL[material].map((t) => t.value);
+    if (!opcoes.includes(tipo)) setTipo(opcoes[0]);
+  }, [material]);
+
+  const siglaMontada = montarSigla({
+    tipo,
+    material,
+    cor,
+    impressao,
+    nFrente,
+    nVerso,
+  });
+  const produtoComposto = dimensoes
+    ? `${siglaMontada} ${dimensoes}`
+    : siglaMontada;
+  const produtoFinal = modoManual ? produtoManual : produtoComposto;
+  const produtoValido =
+    produtoFinal.trim().length >= 5 && produtoFinal.trim().length <= 40;
+
   return (
     <Form method="post" className="space-y-6">
       {/* Campo oculto com o ID do cliente selecionado */}
@@ -257,22 +353,165 @@ export function EncomendaFormulario({ encomenda, erro }: Props) {
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <Label htmlFor="pr1">
-                Produto <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="pr1"
-                name="pr1"
-                required
-                minLength={5}
-                maxLength={40}
-                defaultValue={d?.produto ?? ""}
-                placeholder="Ex: SLBNI4+4 19,5X31X0,016"
-                className="mt-1 font-mono"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                Código do produto conforme cadastro (tipo + dimensões).
-              </p>
+              <input type="hidden" name="pr1" value={produtoFinal} />
+
+              <div className="mb-2 flex items-center justify-between">
+                <Label>
+                  Produto <span className="text-destructive">*</span>
+                </Label>
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 text-xs"
+                  onClick={() => setModoManual((v) => !v)}
+                >
+                  {modoManual
+                    ? "Usar montador de código"
+                    : "Editar código manualmente"}
+                </Button>
+              </div>
+
+              {modoManual ? (
+                <Input
+                  value={produtoManual}
+                  onChange={(e) => setProdutoManual(e.target.value)}
+                  placeholder="Ex: SLBNI4+4 19,5X31X0,016"
+                  className="font-mono"
+                />
+              ) : (
+                <div className="space-y-3 rounded-md border p-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">
+                        Material
+                      </Label>
+                      <Select value={material} onValueChange={setMaterial}>
+                        <SelectTrigger className="mt-1 w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MATERIAIS.map((m) => (
+                            <SelectItem key={m.value} value={m.value}>
+                              {m.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs text-muted-foreground">
+                        Tipo
+                      </Label>
+                      <Select value={tipo} onValueChange={setTipo}>
+                        <SelectTrigger className="mt-1 w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIPOS_POR_MATERIAL[material].map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {t.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs text-muted-foreground">
+                        Cor
+                      </Label>
+                      <Select value={cor} onValueChange={setCor}>
+                        <SelectTrigger className="mt-1 w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="N">Transparente</SelectItem>
+                          <SelectItem value="P">Pigmentado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs text-muted-foreground">
+                        Impressão
+                      </Label>
+                      <Select
+                        value={impressao}
+                        onValueChange={(v) => setImpressao(v as Impressao)}
+                      >
+                        <SelectTrigger className="mt-1 w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="L">Liso</SelectItem>
+                          <SelectItem value="F">
+                            Impressão (Frente)
+                          </SelectItem>
+                          <SelectItem value="FV">
+                            Impressão (Frente e Verso)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {impressao !== "L" && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">
+                          Nº cores {impressao === "FV" ? "(frente)" : ""}
+                        </Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={9}
+                          value={nFrente}
+                          onChange={(e) => setNFrente(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+
+                    {impressao === "FV" && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">
+                          Nº cores (verso)
+                        </Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={9}
+                          value={nVerso}
+                          onChange={(e) => setNVerso(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
+
+                    <div className="sm:col-span-2">
+                      <Label className="text-xs text-muted-foreground">
+                        Dimensões
+                      </Label>
+                      <Input
+                        value={dimensoes}
+                        onChange={(e) => setDimensoes(e.target.value)}
+                        placeholder="Ex: 19,5X31X0,016"
+                        className="mt-1 font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="rounded-md bg-muted px-3 py-2 font-mono text-sm">
+                    {produtoComposto}
+                  </div>
+                </div>
+              )}
+
+              {!produtoValido && (
+                <p className="mt-1 text-xs text-destructive">
+                  Código do produto deve ter entre 5 e 40 caracteres.
+                </p>
+              )}
             </div>
 
             <div>
@@ -552,7 +791,10 @@ export function EncomendaFormulario({ encomenda, erro }: Props) {
         <Button asChild variant="outline">
           <Link to="/fila">Cancelar</Link>
         </Button>
-        <Button type="submit" disabled={salvando || clienteId === 0}>
+        <Button
+          type="submit"
+          disabled={salvando || clienteId === 0 || !produtoValido}
+        >
           {salvando && <Loader2 className="mr-2 size-4 animate-spin" />}
           {encomenda ? "Salvar alterações" : "Criar encomenda"}
         </Button>
