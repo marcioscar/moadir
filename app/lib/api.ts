@@ -146,11 +146,73 @@ export async function listarProdutos(params: {
   return getJson<ProdutosResposta>(url, "Erro ao buscar produtos");
 }
 
-export async function obterProduto(id: number): Promise<Produto> {
+export type ProdutoDetalhe = Produto & {
+  peso: number;
+  origem: string;
+  classifFiscal: string;
+  tributadoIpi: string;
+};
+
+export async function obterProduto(id: number): Promise<ProdutoDetalhe> {
   const url = new URL("/api/produto", API_BASE);
   url.searchParams.set("id", String(id));
 
-  return getJson<Produto>(url, `Produto ${id} não encontrado`);
+  return getJson<ProdutoDetalhe>(url, `Produto ${id} não encontrado`);
+}
+
+export type SalvarProdutoParams = {
+  descricao: string;
+  unidade: string;
+  /** Preço em R$ de hoje (o backend converte pro índice base gravado) */
+  custo: number;
+  venda: number;
+  local: string;
+  peso: number;
+  origem: string;
+  classifFiscal: string;
+  tributadoIpi: string;
+};
+
+export type SalvarProdutoResposta = {
+  ok: boolean;
+  id?: number;
+  erro?: string;
+};
+
+export async function criarProduto(
+  p: SalvarProdutoParams & { codigo: number; modeloId?: number },
+): Promise<SalvarProdutoResposta> {
+  const url = new URL("/api/produto-criar", API_BASE);
+  url.searchParams.set("codigo", String(p.codigo));
+  url.searchParams.set("descricao", p.descricao);
+  url.searchParams.set("unidade", p.unidade);
+  url.searchParams.set("custo", String(p.custo));
+  url.searchParams.set("venda", String(p.venda));
+  url.searchParams.set("local", p.local);
+  url.searchParams.set("peso", String(p.peso));
+  url.searchParams.set("origem", p.origem);
+  url.searchParams.set("classifFiscal", p.classifFiscal);
+  url.searchParams.set("tributadoIpi", p.tributadoIpi);
+  if (p.modeloId) url.searchParams.set("modeloId", String(p.modeloId));
+  return getJson<SalvarProdutoResposta>(url, "Erro ao criar produto");
+}
+
+export async function alterarProduto(
+  id: number,
+  p: SalvarProdutoParams,
+): Promise<SalvarProdutoResposta> {
+  const url = new URL("/api/produto-alterar", API_BASE);
+  url.searchParams.set("id", String(id));
+  url.searchParams.set("descricao", p.descricao);
+  url.searchParams.set("unidade", p.unidade);
+  url.searchParams.set("custo", String(p.custo));
+  url.searchParams.set("venda", String(p.venda));
+  url.searchParams.set("local", p.local);
+  url.searchParams.set("peso", String(p.peso));
+  url.searchParams.set("origem", p.origem);
+  url.searchParams.set("classifFiscal", p.classifFiscal);
+  url.searchParams.set("tributadoIpi", p.tributadoIpi);
+  return getJson<SalvarProdutoResposta>(url, "Erro ao alterar produto");
 }
 
 export async function obterCliente(id: number): Promise<ClienteDetalhe> {

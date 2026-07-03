@@ -1,9 +1,11 @@
-import { Package } from "lucide-react";
+import { Link } from "react-router";
+import { Package, PackagePlus, Pencil } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Route } from "./+types/produtos";
 import { listarProdutos } from "~/lib/api";
 import { requireMinRole } from "~/lib/auth.server";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { DataTable } from "~/components/ui/data-table";
 
@@ -121,6 +123,19 @@ const columns: ColumnDef<Produto>[] = [
       </span>
     ),
   },
+  {
+    id: "acoes",
+    header: "",
+    size: 90,
+    cell: ({ row }) => (
+      <Button variant="ghost" size="sm" asChild>
+        <Link to={`/produtos/${row.original.id}/editar`}>
+          <Pencil className="size-3.5" />
+          Editar
+        </Link>
+      </Button>
+    ),
+  },
 ];
 
 export default function Produtos({ loaderData }: Route.ComponentProps) {
@@ -143,6 +158,12 @@ export default function Produtos({ loaderData }: Route.ComponentProps) {
           </p>
         </div>
         <Badge variant="secondary">{total} produto(s)</Badge>
+        <Button asChild size="sm">
+          <Link to="/produtos/novo">
+            <PackagePlus className="size-3.5" />
+            Novo Produto
+          </Link>
+        </Button>
       </div>
 
       <Card>
