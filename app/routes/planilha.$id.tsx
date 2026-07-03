@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router";
-import { ArrowLeft, FileSpreadsheet, Printer } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { ArrowLeft, FileSpreadsheet, PackagePlus, Printer } from "lucide-react";
 import type { Route } from "./+types/planilha.$id";
 import { obterPlanilha, type MovimentoPlanilha } from "~/lib/api";
 import { requireUsuario } from "~/lib/auth.server";
@@ -7,6 +7,7 @@ import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
+import { centavos, fmtData, qty, TIPO_MOV } from "~/lib/formato";
 
 export const handle = { title: "Planilha de Custo" };
 
@@ -23,29 +24,6 @@ export function meta({ loaderData }: Route.MetaArgs) {
 export async function loader({ params, request }: Route.LoaderArgs) {
   await requireUsuario(request);
   return obterPlanilha(Number(params.id));
-}
-
-const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const qty = (v: number, dec: number) =>
-  (v / 10 ** dec).toLocaleString("pt-BR", {
-    minimumFractionDigits: dec,
-    maximumFractionDigits: dec,
-  });
-const centavos = (v: number) => brl.format(v / 100);
-
-const TIPO_MOV: Record<number, string> = {
-  1: "Entrada",
-  2: "Saída",
-  3: "Transferência",
-  4: "Devolução/Apara",
-  5: "Ajuste",
-  6: "Cancelamento",
-};
-
-function fmtData(iso: string) {
-  if (!iso) return "—";
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y}`;
 }
 
 function LinhaResumo({
@@ -87,6 +65,12 @@ export default function PlanilhaCustoPage({ loaderData }: Route.ComponentProps) 
         </Button>
         <div className="flex items-center gap-2">
           <Badge variant="outline">{p.estadoNome}</Badge>
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/encomendas/${p.id}/consumo`}>
+              <PackagePlus className="size-3.5" />
+              Lançar Consumo
+            </Link>
+          </Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="size-3.5" />
             Imprimir

@@ -570,3 +570,34 @@ export async function salvarGuiaServico(
     "Erro ao salvar guia de serviço",
   );
 }
+
+export type LancarConsumoParams = {
+  id: number;
+  produtoId: number;
+  /** 2 = Consumo/Saída, 4 = Devolução/Apara */
+  tipo: 2 | 4;
+  quantidade: number;
+  reg?: number;
+  /** YYYY-MM-DD; default hoje no backend */
+  data?: string;
+};
+
+export type LancarConsumoResposta = {
+  ok: boolean;
+  seq?: number;
+  valorCentavos?: number;
+  erro?: string;
+};
+
+export async function lancarConsumo(
+  p: LancarConsumoParams,
+): Promise<LancarConsumoResposta> {
+  const url = new URL("/api/consumo-lancar", API_BASE);
+  url.searchParams.set("id", String(p.id));
+  url.searchParams.set("produtoId", String(p.produtoId));
+  url.searchParams.set("tipo", String(p.tipo));
+  url.searchParams.set("quantidade", String(p.quantidade));
+  if (p.reg) url.searchParams.set("reg", String(p.reg));
+  if (p.data) url.searchParams.set("data", p.data);
+  return getJson<LancarConsumoResposta>(url, "Erro ao lançar consumo");
+}

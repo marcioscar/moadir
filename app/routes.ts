@@ -26,6 +26,7 @@ export default [
     route("admin/fator", "routes/admin.fator.tsx"),
     route("encomendas/nova", "routes/encomendas.nova.tsx"),
     route("encomendas/:id/editar", "routes/encomendas.$id.editar.tsx"),
+    route("encomendas/:id/consumo", "routes/encomendas.$id.consumo.tsx"),
     route("guia-servico/:id", "routes/guia-servico.$id.tsx"),
   ]),
 
