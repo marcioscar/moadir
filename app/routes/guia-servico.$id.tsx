@@ -1,5 +1,5 @@
 import React from "react";
-import { Form, Link, redirect, useNavigation } from "react-router";
+import { Form, Link, redirect, useFetcher, useNavigation } from "react-router";
 import { ClipboardList, Loader2, Pencil, Printer } from "lucide-react";
 import type { Route } from "./+types/guia-servico.$id";
 import { requireUsuario } from "~/lib/auth.server";
@@ -7,6 +7,7 @@ import {
   buscarGuiaServico,
   salvarGuiaServico,
   type ComposicaoItem,
+  type Produto,
 } from "~/lib/api";
 import {
   MATERIAIS,
@@ -29,6 +30,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { ProdutoPicker } from "~/components/produto-picker";
+import { BLENDAS } from "~/lib/blendas";
 
 export const handle = { title: "Guia de Serviço" };
 
@@ -252,6 +254,34 @@ export default function GuiaServicoPage({
   const [cintados, setCintados] = React.useState(String(guia?.cintados ?? ""));
   const [dpe, setDpe] = React.useState(guia?.dataPrevisaoEntrega ?? "");
 
+  const [blendaId, setBlendaId] = React.useState(0);
+  const blenda = BLENDAS.find((b) => b.id === blendaId);
+  const poliEstoqueFetcher = useFetcher<Produto | { erro: string }>();
+  const mistEstoqueFetcher = useFetcher<Produto | { erro: string }>();
+
+  function aplicarBlenda(id: number) {
+    setBlendaId(id);
+    const b = BLENDAS.find((x) => x.id === id);
+    if (!b) return;
+    const [comp1, comp2] = b.componentes;
+    setPoliPct(String(comp1.pctSugerido));
+    setPoliId(comp1.produtoId);
+    setPoliNome(comp1.produtoNome);
+    setMistId(comp2.produtoId);
+    setMistNome(comp2.produtoNome);
+    poliEstoqueFetcher.load(`/api/produto?id=${comp1.produtoId}`);
+    mistEstoqueFetcher.load(`/api/produto?id=${comp2.produtoId}`);
+  }
+
+  const poliDisponivel =
+    poliEstoqueFetcher.data && !("erro" in poliEstoqueFetcher.data)
+      ? poliEstoqueFetcher.data.disponivel
+      : null;
+  const mistDisponivel =
+    mistEstoqueFetcher.data && !("erro" in mistEstoqueFetcher.data)
+      ? mistEstoqueFetcher.data.disponivel
+      : null;
+
   const [pesoManual, setPesoManual] = React.useState(false);
   const [poliPesoKg, setPoliPesoKg] = React.useState(
     String(guia?.composicao.polietileno?.pesoKg ?? ""),
@@ -397,6 +427,38 @@ export default function GuiaServicoPage({
 
               <input type="hidden" name="modoPeso" value={pesoManual ? "manual" : "pct"} />
 
+              {!pesoManual && (
+                <div className="mb-4">
+                  <Label htmlFor="blenda">Receita de blenda (sugestão de %, opcional)</Label>
+                  <Select
+                    value={String(blendaId)}
+                    onValueChange={(v) => aplicarBlenda(Number(v))}
+                  >
+                    <SelectTrigger id="blenda" className="mt-1 w-full">
+                      <SelectValue placeholder="Nenhuma — percentual manual" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Nenhuma — percentual manual</SelectItem>
+                      {BLENDAS.map((b) => (
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          {b.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {blenda && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Referência: {blenda.componentes[0].material}{" "}
+                      {blenda.componentes[0].faixaTexto} · {blenda.componentes[1].material}{" "}
+                      {blenda.componentes[1].faixaTexto}
+                      {blenda.obs && <> — {blenda.obs}</>}. Preenche produto e
+                      percentual como sugestão — troque livremente se não
+                      tiver estoque disponível.
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-4">
                 {pigmentado && (
                   <div>
@@ -474,6 +536,30 @@ export default function GuiaServicoPage({
                       />
                     )}
                   </div>
+                  {blenda && !pesoManual && (
+                    <p className="mt-1 text-xs">
+                      <span className="text-muted-foreground">
+                        Sugestão: {blenda.componentes[0].material}
+                      </span>
+                      {poliDisponivel !== null && (
+                        <span
+                          className={
+                            poliDisponivel <= 0
+                              ? "font-medium text-destructive"
+                              : "text-muted-foreground"
+                          }
+                        >
+                          {" "}
+                          — disponível:{" "}
+                          {poliDisponivel.toLocaleString("pt-BR", {
+                            minimumFractionDigits: 3,
+                          })}{" "}
+                          kg
+                          {poliDisponivel <= 0 && " (sem estoque, troque o material)"}
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -525,6 +611,30 @@ export default function GuiaServicoPage({
                       ? "Peso informado diretamente em kg, sem cálculo por percentual."
                       : "Mistura calculada automaticamente: 100% − Polietileno − Pigmento."}
                   </p>
+                  {blenda && !pesoManual && (
+                    <p className="mt-1 text-xs">
+                      <span className="text-muted-foreground">
+                        Sugestão: {blenda.componentes[1].material}
+                      </span>
+                      {mistDisponivel !== null && (
+                        <span
+                          className={
+                            mistDisponivel <= 0
+                              ? "font-medium text-destructive"
+                              : "text-muted-foreground"
+                          }
+                        >
+                          {" "}
+                          — disponível:{" "}
+                          {mistDisponivel.toLocaleString("pt-BR", {
+                            minimumFractionDigits: 3,
+                          })}{" "}
+                          kg
+                          {mistDisponivel <= 0 && " (sem estoque, troque o material)"}
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>
