@@ -559,6 +559,10 @@ export type GuiaServicoDados = {
   pacotes: number;
   cintados: number;
   via: number;
+  /** "" = nenhum, "C" = centro, "1" = um lado, "2" = dois lados */
+  refile: "" | "C" | "1" | "2";
+  /** "" = nenhum, "F" = frente, "FV" = frente e verso */
+  tratamento: "" | "F" | "FV";
   requisicaoNumero: number | null;
 };
 
@@ -598,6 +602,8 @@ export type SalvarGuiaServicoParams = {
   poliPesoKg?: number;
   mistPesoKg?: number;
   pigPesoKg?: number;
+  refile?: "" | "C" | "1" | "2";
+  tratamento?: "" | "F" | "FV";
 };
 
 export type GuiaServicoSalvarResposta = {
@@ -621,6 +627,8 @@ export async function salvarGuiaServico(
   url.searchParams.set("sanfonaMm", String(p.sanfonaMm));
   url.searchParams.set("larguraDupla", p.larguraDupla ? "1" : "0");
   url.searchParams.set("cintados", String(p.cintados));
+  url.searchParams.set("refile", p.refile ?? "");
+  url.searchParams.set("tratamento", p.tratamento ?? "");
   if (p.modoPeso === "manual") {
     url.searchParams.set("modoPeso", "manual");
     url.searchParams.set("poliPesoKg", String(p.poliPesoKg ?? 0));

@@ -31,6 +31,7 @@ import {
 } from "~/components/ui/select";
 import { ProdutoPicker } from "~/components/produto-picker";
 import { BLENDAS } from "~/lib/blendas";
+import { sugerirBobinas60cm } from "~/lib/bobinas";
 
 export const handle = { title: "Guia de Serviço" };
 
@@ -72,6 +73,8 @@ export async function action({ request, params }: Route.ActionArgs) {
     poliPesoKg: getNum("poliPesoKg"),
     mistPesoKg: getNum("mistPesoKg"),
     pigPesoKg: getNum("pigPesoKg"),
+    refile: get("refile") as "" | "C" | "1" | "2",
+    tratamento: get("tratamento") as "" | "F" | "FV",
   });
 
   if (resultado.erro) {
@@ -253,6 +256,12 @@ export default function GuiaServicoPage({
   );
   const [cintados, setCintados] = React.useState(String(guia?.cintados ?? ""));
   const [dpe, setDpe] = React.useState(guia?.dataPrevisaoEntrega ?? "");
+  const [refile, setRefile] = React.useState<"" | "C" | "1" | "2">(
+    guia?.refile ?? "",
+  );
+  const [tratamento, setTratamento] = React.useState<"" | "F" | "FV">(
+    guia?.tratamento ?? "",
+  );
 
   const [blendaId, setBlendaId] = React.useState(0);
   const blenda = BLENDAS.find((b) => b.id === blendaId);
@@ -695,6 +704,47 @@ export default function GuiaServicoPage({
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="refile">Refile</Label>
+                  <Select
+                    value={refile || "none"}
+                    onValueChange={(v) =>
+                      setRefile(v === "none" ? "" : (v as "C" | "1" | "2"))
+                    }
+                  >
+                    <SelectTrigger id="refile" className="mt-1 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      <SelectItem value="C">Refilar no Centro</SelectItem>
+                      <SelectItem value="1">Refilar de um Lado</SelectItem>
+                      <SelectItem value="2">Refilar nos dois Lados</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="refile" value={refile} />
+                </div>
+
+                <div>
+                  <Label htmlFor="tratamento">Tratamento RF</Label>
+                  <Select
+                    value={tratamento || "none"}
+                    onValueChange={(v) =>
+                      setTratamento(v === "none" ? "" : (v as "F" | "FV"))
+                    }
+                  >
+                    <SelectTrigger id="tratamento" className="mt-1 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      <SelectItem value="F">Frente</SelectItem>
+                      <SelectItem value="FV">Frente e Verso</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="tratamento" value={tratamento} />
+                </div>
+
                 {solda === "SL" && (
                   <div className="flex items-center gap-2 pt-6">
                     <Checkbox
@@ -788,6 +838,9 @@ function GuiaUniex({
     guia.composicao.pigmento,
   ].filter((i): i is NonNullable<typeof i> => i !== null);
   const pesoTotal = composicaoItens.reduce((s, i) => s + i.pesoKg, 0);
+  const bobinas = dim
+    ? sugerirBobinas60cm(dim.espCm, guia.metrosExtrudar)
+    : null;
 
   return (
     <Card className="print:break-after-page print:rounded-none print:border-0 print:shadow-none">
@@ -845,8 +898,68 @@ function GuiaUniex({
             ? "Sem sanfona na extrusão."
             : `Sanfona ${guia.sanfona.tipo === "L" ? "lateral" : "de fundo"}: ${guia.sanfona.mm} mm.`}
         </p>
+
+        {bobinas && (
+          <p className="text-sm text-muted-foreground">
+            Bobinas (Ø 60 cm): dividir em{" "}
+            <span className="font-medium text-foreground">
+              {bobinas.qtdBobinas} bobina{bobinas.qtdBobinas > 1 ? "s" : ""}
+            </span>{" "}
+            de ≈ {metros(bobinas.metrosPorBobina)} m cada
+            {bobinas.aproximado && ` (espessura de referência: ${esp(bobinas.espRef)} cm)`}
+            .
+          </p>
+        )}
+
+        <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm sm:grid-cols-4">
+          <ChecklistItem
+            marcado={guia.refile === "C"}
+            texto="Refilar no Centro"
+          />
+          <ChecklistItem
+            marcado={guia.refile === "1"}
+            texto="Refilar de um Lado"
+          />
+          <ChecklistItem
+            marcado={guia.refile === "2"}
+            texto="Refilar nos dois Lados"
+          />
+          <span />
+          <ChecklistItem
+            marcado={guia.tratamento === "F"}
+            texto="Tratamento RF → Frente"
+          />
+          <ChecklistItem
+            marcado={guia.tratamento === "FV"}
+            texto="Tratamento RF → Frente e Verso"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <p>
+            <span className="text-muted-foreground">Máquina:</span>{" "}
+            <span className="inline-block w-32 border-b border-dotted">
+              &nbsp;
+            </span>
+          </p>
+          <p>
+            <span className="text-muted-foreground">Operador:</span>{" "}
+            <span className="inline-block w-40 border-b border-dotted">
+              &nbsp;
+            </span>
+          </p>
+        </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ChecklistItem({ marcado, texto }: { marcado: boolean; texto: string }) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <span aria-hidden>{marcado ? "☑" : "☐"}</span>
+      {texto}
+    </span>
   );
 }
 
