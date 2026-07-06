@@ -2,24 +2,28 @@
 // usada na Guia de Serviço UNIEX pra sugerir como dividir a metragem total
 // a extrudar em bobinas físicas desse diâmetro. Fonte: ficha de receita em
 // papel já usada na produção.
+// Valores em METROS (a vírgula na ficha de papel original é separador de
+// milhar aqui, não decimal — confirmado batendo com a física do rolo:
+// metros ≈ π×Ø²/(4×espessura), ex. espessura 0,013 → ≈2.175m calculado vs
+// 2.116m da tabela, mesma ordem de grandeza; não ~2 metros).
 const METRAGEM_POR_ESPESSURA_D60: { espCm: number; metros: number }[] = [
-  { espCm: 0.003, metros: 9.416 },
-  { espCm: 0.004, metros: 6.88 },
-  { espCm: 0.005, metros: 5.65 },
-  { espCm: 0.006, metros: 4.586 },
-  { espCm: 0.007, metros: 3.93 },
-  { espCm: 0.008, metros: 3.44 },
-  { espCm: 0.009, metros: 3.057 },
-  { espCm: 0.01, metros: 2.825 },
-  { espCm: 0.011, metros: 2.5 },
-  { espCm: 0.012, metros: 2.293 },
-  { espCm: 0.013, metros: 2.116 },
-  { espCm: 0.014, metros: 1.966 },
-  { espCm: 0.015, metros: 1.883 },
-  { espCm: 0.016, metros: 1.72 },
-  { espCm: 0.018, metros: 1.528 },
-  { espCm: 0.019, metros: 1.448 },
-  { espCm: 0.02, metros: 1.412 },
+  { espCm: 0.003, metros: 9416 },
+  { espCm: 0.004, metros: 6880 },
+  { espCm: 0.005, metros: 5650 },
+  { espCm: 0.006, metros: 4586 },
+  { espCm: 0.007, metros: 3930 },
+  { espCm: 0.008, metros: 3440 },
+  { espCm: 0.009, metros: 3057 },
+  { espCm: 0.01, metros: 2825 },
+  { espCm: 0.011, metros: 2500 },
+  { espCm: 0.012, metros: 2293 },
+  { espCm: 0.013, metros: 2116 },
+  { espCm: 0.014, metros: 1966 },
+  { espCm: 0.015, metros: 1883 },
+  { espCm: 0.016, metros: 1720 },
+  { espCm: 0.018, metros: 1528 },
+  { espCm: 0.019, metros: 1448 },
+  { espCm: 0.02, metros: 1412 },
 ];
 
 export type SugestaoBobinas = {
