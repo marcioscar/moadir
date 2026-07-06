@@ -32,6 +32,7 @@ import {
 import { ProdutoPicker } from "~/components/produto-picker";
 import { BLENDAS } from "~/lib/blendas";
 import { sugerirBobinas60cm } from "~/lib/bobinas";
+import { cn } from "~/lib/utils";
 
 export const handle = { title: "Guia de Serviço" };
 
@@ -956,8 +957,17 @@ function GuiaUniex({
 
 function ChecklistItem({ marcado, texto }: { marcado: boolean; texto: string }) {
   return (
-    <span className="flex items-center gap-1.5">
-      <span aria-hidden>{marcado ? "☑" : "☐"}</span>
+    <span
+      className={cn(
+        "flex items-center gap-1.5 rounded",
+        marcado
+          ? "border border-foreground px-1.5 py-0.5 font-semibold"
+          : "text-muted-foreground",
+      )}
+    >
+      <span aria-hidden className={marcado ? "text-base" : ""}>
+        {marcado ? "☑" : "☐"}
+      </span>
       {texto}
     </span>
   );
