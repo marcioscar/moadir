@@ -12,6 +12,7 @@ import {
   TrendingUpIcon,
   ClipboardList,
   PackagePlus,
+  CalculatorIcon,
 } from "lucide-react";
 import {
   Menubar,
@@ -38,13 +39,14 @@ const GRUPOS = [
   },
   {
     label: "Produção",
-    prefixos: ["/fila", "/atualizacao", "/encomendas", "/consumo"],
+    prefixos: ["/fila", "/atualizacao", "/encomendas", "/consumo", "/orcamento"],
     minRole: "operador" as Role,
     itens: [
       { label: "Nova Encomenda", path: "/encomendas/nova", icon: ClipboardList },
       { label: "Fila de Produção", path: "/fila", icon: FactoryIcon },
       { label: "Atualizar Estágio", path: "/atualizacao", icon: Settings2 },
       { label: "Lançar Consumo", path: "/consumo", icon: PackagePlus },
+      { label: "Orçamento", path: "/orcamento", icon: CalculatorIcon },
     ],
   },
   {

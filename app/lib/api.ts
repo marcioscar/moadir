@@ -671,3 +671,48 @@ export async function lancarConsumo(
   if (p.data) url.searchParams.set("data", p.data);
   return getJson<LancarConsumoResposta>(url, "Erro ao lançar consumo");
 }
+
+export type OrcamentoItemInput = {
+  qtd: number;
+  cod: string;
+  l: number;
+  c: number;
+  e: number;
+  /** Produto de pigmento (usado quando o código contém "P") */
+  pigId?: number;
+  /** Produto de tinta (usado quando o código contém "I") */
+  tintaId?: number;
+};
+
+export type OrcamentoItemResultado = {
+  item: number;
+  codigo: string;
+  dimensoes: string;
+  qtd_kg: number;
+  preco_kg: string;
+  valor_item: string;
+};
+
+export type OrcamentoResposta = {
+  status: string;
+  itens: OrcamentoItemResultado[];
+};
+
+// Cotação rápida de até 4 itens (rotina ORCSAC, sem gravar nada no ERP).
+export async function calcularOrcamento(
+  itens: OrcamentoItemInput[],
+): Promise<OrcamentoResposta> {
+  const url = new URL("/api/orcamento", API_BASE);
+  itens.slice(0, 4).forEach((it, idx) => {
+    if (!it.cod) return;
+    const n = idx + 1;
+    url.searchParams.set(`i${n}qtd`, String(it.qtd));
+    url.searchParams.set(`i${n}cod`, it.cod);
+    url.searchParams.set(`i${n}l`, String(it.l));
+    url.searchParams.set(`i${n}c`, String(it.c));
+    url.searchParams.set(`i${n}e`, String(it.e));
+    if (it.pigId) url.searchParams.set(`i${n}pig`, String(it.pigId));
+    if (it.tintaId) url.searchParams.set(`i${n}tinta`, String(it.tintaId));
+  });
+  return getJson<OrcamentoResposta>(url, "Erro ao calcular orçamento");
+}

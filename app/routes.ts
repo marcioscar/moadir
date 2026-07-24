@@ -31,6 +31,7 @@ export default [
     route("encomendas/:id/editar", "routes/encomendas.$id.editar.tsx"),
     route("encomendas/:id/consumo", "routes/encomendas.$id.consumo.tsx"),
     route("guia-servico/:id", "routes/guia-servico.$id.tsx"),
+    route("orcamento", "routes/orcamento.tsx"),
   ]),
 
   // API routes (sem layout)
